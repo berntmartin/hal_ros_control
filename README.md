@@ -100,8 +100,8 @@ GUI, set the "Run Mode" to "Roll" for continuous updating:
 The rviz and simulated trajectories are launched identically to the
 `rrbot_control` package:
 
-    roslaunch hal_rrbot_control rrbot_visualize.launch
-    roslaunch hal_rrbot_control rrbot_test_trajectory.launch
+    roslaunch rrbot_control_boilerplate rrbot_visualize.launch
+    roslaunch rrbot_control_boilerplate rrbot_test_trajectory.launch
 
 ### `hal_io` demo
 

@@ -11,19 +11,19 @@
   <!-- - Set HAL debug level, 0-5 -->
   <arg name="hal_debug_level" default="1" />
 
+  <!-- Load example URDF from rrbot_description package -->
+  <param
+      name="robot_description"
+      command="$(find xacro)/xacro --inorder
+               '$(find rrbot_description)/urdf/rrbot.xacro'"
+      />
+
   <group ns="rrbot">		<!-- Same ns as `rrbot_control` package -->
 
-    <!-- Load example URDF from rrbot_description package -->
-    <param
-	name="robot_description"
-	command="$(find xacro)/xacro --inorder
-                 '$(find rrbot_description)/urdf/rrbot.xacro'"
-	         />
-
     <!-- Load all settings into ROS parameter server -->
-    <!-- - Joint parameters from rrbot_control package -->
+    <!-- - Joint parameters from rrbot_control_boilerplate package -->
     <rosparam
-	file="$(find hal_rrbot_control)/config/rrbot_controllers.yaml"
+	file="$(find rrbot_control_boilerplate)/config/rrbot_controllers.yaml"
 	command="load"
         />
     <!-- - HAL configuration params -->
