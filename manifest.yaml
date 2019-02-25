@@ -1,0 +1,29 @@
+actions: []
+authors: John Morris <john@zultron.com>
+brief: ''
+bugtracker: ''
+depends:
+- ros_control_boilerplate
+- std_srvs
+- roscpp
+- controller_manager
+- message_runtime
+- std_msgs
+- catkin
+- python-catkin-pkg
+- rospy
+- message_generation
+- redis_store
+- ros_pytest
+- python-attrs-pip
+description: Machinekit HAL interface to robot hardware and I/O
+license: BSD
+maintainers: John Morris <john@zultron.com>
+msgs: []
+package_type: package
+repo_url: ''
+srvs:
+- SetInt32
+- SetFloat64
+- SetUInt32
+url: ''
