@@ -1,0 +1,64 @@
+warning: Tag `XML_SCHEMA' at line 1796 of file `/tmp/tmp3DMIDy' has become obsolete.
+         To avoid this warning please remove this line from your configuration file or upgrade it using "doxygen -u"
+warning: Tag `XML_DTD' at line 1802 of file `/tmp/tmp3DMIDy' has become obsolete.
+         To avoid this warning please remove this line from your configuration file or upgrade it using "doxygen -u"
+warning: tag INCLUDE_PATH: include path `$INCLUDE_PATH' does not exist
+warning: source $INCLUDE_PATH is not a readable file or directory... skipping.
+/home/travis/build/zultron/ros_ws/src/hal_ros_control/hal_hw_interface/doc/modules.rst:: WARNING: document isn't included in any toctree
+Documenting a catkin package
+Documenting hal_hw_interface located here: /home/travis/build/zultron/ros_ws/src/hal_ros_control/hal_hw_interface
+{'doxygen': {'output_dir': 'c++', 'builder': 'doxygen', 'homepage': 'https://github.com/zultron/hal_ros_control', 'file_patterns': '*.c *.cpp *.h *.cc *.hh *.dox', 'name': 'C++ API'}, 'sphinx': {'builder': 'sphinx', 'sphinx_root_dir': 'doc', 'output_dir': 'python'}}
+{'output_dir': 'c++', 'builder': 'doxygen', 'homepage': 'https://github.com/zultron/hal_ros_control', 'file_patterns': '*.c *.cpp *.h *.cc *.hh *.dox', 'name': 'C++ API'}
+Generated the following tagfile string 
+doxygen-ating hal_hw_interface [doxygen /tmp/tmp3DMIDy]
+Catkin package, no need to generate python paths
+Sphinx python path is: /home/travis/build/zultron/ros_ws/devel/lib/python2.7/dist-packages:/opt/ros/kinetic/lib/python2.7/dist-packages
+sphinx-building hal_hw_interface [sphinx-build -a -E -b html . /home/travis/build/zultron/ros_ws/src/hal_ros_control/hal_hw_interface/doc/html/python]
+  cwd is /home/travis/build/zultron/ros_ws/src/hal_ros_control/hal_hw_interface/doc
+stdout:
+Running Sphinx v1.4.9
+making output directory...
+loading intersphinx inventory from https://docs.python.org/objects.inv...
+intersphinx inventory has moved: https://docs.python.org/objects.inv -> https://docs.python.org/3/objects.inv
+building [mo]: all of 0 po files
+building [html]: all source files
+updating environment: 3 added, 0 changed, 0 removed
+reading sources... [ 33%] hal_hw_interface
+reading sources... [ 66%] index
+reading sources... [100%] modules
+
+looking for now-outdated files... none found
+pickling environment... done
+checking consistency... done
+preparing documents... done
+writing output... [ 33%] hal_hw_interface
+writing output... [ 66%] index
+writing output... [100%] modules
+
+generating indices... genindex py-modindex
+highlighting module code... [ 12%] hal_hw_interface.hal_pin_attrs
+highlighting module code... [ 25%] hal_hw_interface.exception
+highlighting module code... [ 37%] hal_hw_interface.hal_offset_mgr
+highlighting module code... [ 50%] hal_hw_interface.hal_io_comp
+highlighting module code... [ 62%] hal_hw_interface.ros_hal_component
+highlighting module code... [ 75%] hal_hw_interface.hal_obj_base
+highlighting module code... [ 87%] hal_hw_interface.ros_hal_pin
+highlighting module code... [100%] hal_hw_interface.redis_store_hal_pin
+
+writing additional pages... search
+copying static files... done
+copying extra files... done
+dumping search index in English (code: en) ... done
+dumping object inventory... done
+build succeeded, 1 warning.
+
+stderr
+None
+[]
+[('SetInt32', '/home/travis/build/zultron/ros_ws/src/hal_ros_control/hal_hw_interface/srv/SetInt32.srv'), ('SetFloat64', '/home/travis/build/zultron/ros_ws/src/hal_ros_control/hal_hw_interface/srv/SetFloat64.srv'), ('SetUInt32', '/home/travis/build/zultron/ros_ws/src/hal_ros_control/hal_hw_interface/srv/SetUInt32.srv')]
+[]
+srv: hal_hw_interface/SetInt32
+srv: hal_hw_interface/SetFloat64
+srv: hal_hw_interface/SetUInt32
+copying /opt/ros/kinetic/lib/python2.7/dist-packages/rosdoc_lite/templates/msg-styles.css to doc/html/msg-styles.css
+Done documenting hal_hw_interface you can find your documentation here: /home/travis/build/zultron/ros_ws/src/hal_ros_control/hal_hw_interface/doc

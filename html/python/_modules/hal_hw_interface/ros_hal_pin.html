@@ -1,0 +1,437 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>hal_hw_interface.ros_hal_pin &#8212; hal_hw_interface 0.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="hal_hw_interface 0.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../index.html">hal_hw_interface 0.0.0 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hal_hw_interface.ros_hal_pin</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   :synopsis: ROS-connected HAL pin objects for use in</span>
+<span class="sd">     :py:mod:`hal_hw_interface.ros_hal_component`</span>
+
+<span class="sd">   .. moduleauthor:: John Morris &lt;john@dovetail-automata.com&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">attr</span>
+<span class="kn">import</span> <span class="nn">rospy</span>
+<span class="kn">from</span> <span class="nn">hal_hw_interface.hal_obj_base</span> <span class="k">import</span> <span class="n">HalObjBase</span>
+<span class="kn">from</span> <span class="nn">hal_hw_interface.exception</span> <span class="k">import</span> <span class="n">HalHWInterfaceException</span>
+<span class="kn">from</span> <span class="nn">hal_hw_interface.hal_pin_attrs</span> <span class="k">import</span> <span class="n">HalPinDir</span><span class="p">,</span> <span class="n">HalPinType</span>
+<span class="kn">from</span> <span class="nn">std_msgs.msg</span> <span class="k">import</span> <span class="n">Bool</span><span class="p">,</span> <span class="n">Float64</span><span class="p">,</span> <span class="n">UInt32</span><span class="p">,</span> <span class="n">Int32</span>
+<span class="kn">from</span> <span class="nn">std_srvs.srv</span> <span class="k">import</span> <span class="n">SetBool</span>
+<span class="kn">from</span> <span class="nn">hal_hw_interface.srv</span> <span class="k">import</span> <span class="n">SetUInt32</span><span class="p">,</span> <span class="n">SetInt32</span><span class="p">,</span> <span class="n">SetFloat64</span>
+
+<span class="k">if</span> <span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">):</span>
+
+<div class="viewcode-block" id="isclose"><a class="viewcode-back" href="../../hal_hw_interface.html#hal_hw_interface.ros_hal_pin.isclose">[docs]</a>    <span class="k">def</span> <span class="nf">isclose</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">rel_tol</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">,</span> <span class="n">abs_tol</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nb">max</span><span class="p">(</span><span class="n">rel_tol</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">b</span><span class="p">)),</span> <span class="n">abs_tol</span><span class="p">)</span></div>
+
+
+<span class="k">else</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">isclose</span>
+
+
+<span class="nd">@attr</span><span class="o">.</span><span class="n">s</span>
+<div class="viewcode-block" id="RosHalPin"><a class="viewcode-back" href="../../hal_hw_interface.html#hal_hw_interface.ros_hal_pin.RosHalPin">[docs]</a><span class="k">class</span> <span class="nc">RosHalPin</span><span class="p">(</span><span class="n">HalObjBase</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Basic HAL pin for use in</span>
+<span class="sd">    :py:class:`hal_hw_interface.ros_hal_component.RosHalComponent`</span>
+<span class="sd">    user components</span>
+
+<span class="sd">    This is a basic HAL pin with no special connection to ROS.  It may</span>
+<span class="sd">    be used in a HAL component, and serves as a base class for other</span>
+<span class="sd">    pins.</span>
+
+<span class="sd">    :param name: The HAL pin name</span>
+<span class="sd">    :type name: str</span>
+<span class="sd">    :param hal_type: HAL pin data type, one of :code:`[&#39;BIT&#39;, &#39;U32&#39;,</span>
+<span class="sd">      &#39;S32&#39;, &#39;FLOAT&#39;]`</span>
+<span class="sd">    :type hal_type:  :py:class:`hal_hw_interface.hal_pin_attrs.HalPinType`</span>
+<span class="sd">    :param hal_dir: HAL pin direction, one of :code:`[&#39;IN&#39;, &#39;OUT&#39;, &#39;IO&#39;]`</span>
+<span class="sd">    :type hal_dir:  :py:class:`hal_hw_interface.hal_pin_attrs.HalPinDir`</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">_default_hal_type</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_default_hal_dir</span> <span class="o">=</span> <span class="s1">&#39;IN&#39;</span>  <span class="c1"># Subclasses may override for hal_dir attribute</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
+    <span class="n">hal_type</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">(</span><span class="n">converter</span><span class="o">=</span><span class="n">HalPinType</span><span class="p">)</span>
+    <span class="n">hal_dir</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">(</span><span class="n">converter</span><span class="o">=</span><span class="n">HalPinDir</span><span class="p">)</span>
+
+    <span class="c1"># Attribute default factories</span>
+    <span class="nd">@hal_dir</span><span class="o">.</span><span class="n">default</span>
+    <span class="k">def</span> <span class="nf">_hal_dir_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">HalPinDir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_default_hal_dir</span><span class="p">)</span>
+
+    <span class="nd">@hal_type</span><span class="o">.</span><span class="n">default</span>
+    <span class="k">def</span> <span class="nf">_hal_type_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_hal_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> requires hal_type= argument&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">HalPinType</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_default_hal_type</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pin_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return the pin_name; read-only property</span>
+
+<span class="sd">        In some subclasses, this may not be the same as the</span>
+<span class="sd">        :code:`name` parameter supplied to the constructor.</span>
+
+<span class="sd">        :returns:  :py:class:`str` pin name</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="k">def</span> <span class="nf">__attrs_post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hal_init</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ros_init</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_hal_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hal_pin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hal_comp</span><span class="o">.</span><span class="n">newpin</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pin_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hal_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hal_dir</span>
+        <span class="p">)</span>
+
+        <span class="n">rospy</span><span class="o">.</span><span class="n">loginfo</span><span class="p">(</span>
+            <span class="s1">&#39;Created pin &quot;</span><span class="si">{}</span><span class="s1">&quot; type/dir &quot;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pin_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hal_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hal_dir</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_ros_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># May be implemented in subclasses</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="RosHalPin.update"><a class="viewcode-back" href="../../hal_hw_interface.html#hal_hw_interface.ros_hal_pin.RosHalPin.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;An update function; used in some subclasses</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># May be implemented in subclasses</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="RosHalPin.set_pin"><a class="viewcode-back" href="../../hal_hw_interface.html#hal_hw_interface.ros_hal_pin.RosHalPin.set_pin">[docs]</a>    <span class="k">def</span> <span class="nf">set_pin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the HAL pin&#39;s value</span>
+
+<span class="sd">        Does not apply to pins initialized with :code:`hal_dir=&#39;IN&#39;`.</span>
+
+<span class="sd">        :param value: The value to set</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hal_comp</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pin_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
+
+<div class="viewcode-block" id="RosHalPin.get_pin"><a class="viewcode-back" href="../../hal_hw_interface.html#hal_hw_interface.ros_hal_pin.RosHalPin.get_pin">[docs]</a>    <span class="k">def</span> <span class="nf">get_pin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the HAL pin&#39;s value</span>
+
+<span class="sd">        :returns: HAL pin&#39;s value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hal_comp</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pin_name</span><span class="p">]</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">compname</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;The HAL component name; read-only property</span>
+
+<span class="sd">        :returns: :py:class:`str` of component name</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hal_comp</span><span class="o">.</span><span class="n">getprefix</span><span class="p">()</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_isclose</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">rel_tol</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">,</span> <span class="n">abs_tol</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">isclose</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">rel_tol</span><span class="p">,</span> <span class="n">abs_tol</span><span class="p">)</span></div>
+
+
+<span class="nd">@attr</span><span class="o">.</span><span class="n">s</span>
+<div class="viewcode-block" id="RosHalPinPublisher"><a class="viewcode-back" href="../../hal_hw_interface.html#hal_hw_interface.ros_hal_pin.RosHalPinPublisher">[docs]</a><span class="k">class</span> <span class="nc">RosHalPinPublisher</span><span class="p">(</span><span class="n">RosHalPin</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;HAL pin with attached ROS publisher</span>
+
+<span class="sd">    This HAL pin is set with publishes its value on a ROS topic,</span>
+<span class="sd">    :code:`&lt;compname&gt;/&lt;name&gt;` by default.  Its :py:func:`update` function</span>
+<span class="sd">    should be called from the</span>
+<span class="sd">    :py:func:`hal_hw_interface.ros_hal_component.RosHalComponent.update`</span>
+<span class="sd">    function.</span>
+
+<span class="sd">    It will only publish its value when the value has changed.  For</span>
+<span class="sd">    :py:class:`FLOAT` types, absolute and relative tolerances are read</span>
+<span class="sd">    from the :code:`&lt;compname&gt;/absolute_tolerance` and</span>
+<span class="sd">    :code:`&lt;compname&gt;/relative_tolerance` ROS parameters and default</span>
+<span class="sd">    to :code:`1e-9` each, respectively.</span>
+
+<span class="sd">    The publisher message type will be one of :code:`[Bool, UInt32,</span>
+<span class="sd">    Int32, Float64]` from the :py:mod:`std_msgs` ROS package, as appropriate</span>
+<span class="sd">    for the HAL pin type.</span>
+
+<span class="sd">    :param name: The HAL pin name</span>
+<span class="sd">    :type name: str</span>
+<span class="sd">    :param hal_type: HAL pin data type, one of :code:`[&#39;BIT&#39;, &#39;U32&#39;,</span>
+<span class="sd">      &#39;S32&#39;, &#39;FLOAT&#39;]`</span>
+<span class="sd">    :type hal_type:  :py:class:`hal_hw_interface.hal_pin_attrs.HalPinType`</span>
+<span class="sd">    :param hal_dir: HAL pin direction, one of :code:`[&#39;IN&#39;, &#39;OUT&#39;, &#39;IO&#39;]`</span>
+<span class="sd">    :type hal_dir:  :py:class:`hal_hw_interface.hal_pin_attrs.HalPinDir`</span>
+<span class="sd">    :param pub_topic: ROS publisher topic</span>
+<span class="sd">    :type pub_topic: str</span>
+
+<span class="sd">    .. todo::  Parameter :code:`hal_dir` needs a validator; not all pin</span>
+<span class="sd">      directions make sense for all subclasses</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">_default_hal_dir</span> <span class="o">=</span> <span class="s1">&#39;IN&#39;</span>
+    <span class="n">pub_topic</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
+    <span class="n">msg_type</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
+    <span class="n">last_value</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># Attribute default factories</span>
+    <span class="nd">@pub_topic</span><span class="o">.</span><span class="n">default</span>
+    <span class="k">def</span> <span class="nf">_pub_topic_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin_name</span><span class="p">)</span>
+
+    <span class="nd">@msg_type</span><span class="o">.</span><span class="n">default</span>
+    <span class="k">def</span> <span class="nf">_msg_type_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="n">HalPinType</span><span class="p">(</span><span class="s1">&#39;BIT&#39;</span><span class="p">):</span> <span class="n">Bool</span><span class="p">,</span>
+            <span class="n">HalPinType</span><span class="p">(</span><span class="s1">&#39;U32&#39;</span><span class="p">):</span> <span class="n">UInt32</span><span class="p">,</span>
+            <span class="n">HalPinType</span><span class="p">(</span><span class="s1">&#39;S32&#39;</span><span class="p">):</span> <span class="n">Int32</span><span class="p">,</span>
+            <span class="n">HalPinType</span><span class="p">(</span><span class="s1">&#39;FLOAT&#39;</span><span class="p">):</span> <span class="n">Float64</span><span class="p">,</span>
+        <span class="p">}[</span><span class="bp">self</span><span class="o">.</span><span class="n">hal_type</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_ros_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ros_publisher_init</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_ros_publisher_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">rospy</span><span class="o">.</span><span class="n">loginfo</span><span class="p">(</span><span class="s1">&#39;Creating publisher on topic &quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pub_topic</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pub</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">Publisher</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pub_topic</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg_type</span><span class="p">,</span> <span class="n">queue_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">latch</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_value_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hal_type</span> <span class="o">==</span> <span class="n">HalPinType</span><span class="p">(</span><span class="s1">&#39;FLOAT&#39;</span><span class="p">):</span>
+            <span class="n">changed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isclose</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">last_value</span><span class="p">,</span>
+                <span class="n">value</span><span class="p">,</span>
+                <span class="n">rel_tol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_ros_param</span><span class="p">(</span><span class="s1">&#39;relative_tolerance&#39;</span><span class="p">,</span> <span class="mf">1e-9</span><span class="p">),</span>
+                <span class="n">abs_tol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_ros_param</span><span class="p">(</span><span class="s1">&#39;absolute_tolerance&#39;</span><span class="p">,</span> <span class="mf">1e-9</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">changed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_value</span> <span class="o">!=</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="n">changed</span>
+
+<div class="viewcode-block" id="RosHalPinPublisher.update"><a class="viewcode-back" href="../../hal_hw_interface.html#hal_hw_interface.ros_hal_pin.RosHalPinPublisher.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;If pin value has changed, publish to ROS topic</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># rospy.logdebug(</span>
+        <span class="c1">#     &quot;publish_pins:  Publishing pin &#39;%s&#39; value &#39;%s&#39;&quot; %</span>
+        <span class="c1">#     (self.pin_name, self.get_pin()))</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pin</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_changed</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">last_value</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div></div>
+
+
+<span class="nd">@attr</span><span class="o">.</span><span class="n">s</span>
+<div class="viewcode-block" id="RosHalPinSubscriber"><a class="viewcode-back" href="../../hal_hw_interface.html#hal_hw_interface.ros_hal_pin.RosHalPinSubscriber">[docs]</a><span class="k">class</span> <span class="nc">RosHalPinSubscriber</span><span class="p">(</span><span class="n">RosHalPinPublisher</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;HAL pin with attached ROS publisher and subscriber</span>
+
+<span class="sd">    This HAL pin isn&#39;t set via :py:func:`set_pin`, but subscribes to a</span>
+<span class="sd">    ROS topic for its value.  As a subclass of</span>
+<span class="sd">    :py:class:`RosHalPinPublisher`, it also publishes its value on a</span>
+<span class="sd">    ROS topic from the :py:func:`update` function.</span>
+
+<span class="sd">    The subscriber message type will be one of :code:`[Bool, UInt32,</span>
+<span class="sd">    Int32, Float64]` from the :py:mod:`std_msgs` ROS package, as</span>
+<span class="sd">    appropriate for the HAL pin type.</span>
+
+<span class="sd">    :param name: The HAL pin name</span>
+<span class="sd">    :type name: str</span>
+<span class="sd">    :param hal_type: HAL pin data type, one of `[&#39;BIT&#39;, &#39;U32&#39;, &#39;S32&#39;, &#39;FLOAT&#39;]`</span>
+<span class="sd">    :type hal_type:  :py:class:`hal_hw_interface.hal_pin_attrs.HalPinType`</span>
+<span class="sd">    :param hal_dir: HAL pin direction, one of `[&#39;OUT&#39;, &#39;IO&#39;]`</span>
+<span class="sd">    :type hal_dir:  :py:class:`hal_hw_interface.hal_pin_attrs.HalPinDir`</span>
+<span class="sd">    :param pub_topic: ROS publisher topic</span>
+<span class="sd">    :type pub_topic: str</span>
+<span class="sd">    :param sub_topic: ROS subscriber topic</span>
+<span class="sd">    :type sub_topic: str</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">_default_hal_dir</span> <span class="o">=</span> <span class="s1">&#39;OUT&#39;</span>
+    <span class="n">sub_topic</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
+
+    <span class="c1"># Attribute default factories</span>
+    <span class="nd">@sub_topic</span><span class="o">.</span><span class="n">default</span>
+    <span class="k">def</span> <span class="nf">_sub_topic_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin_name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_ros_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ros_publisher_init</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ros_subscriber_init</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_ros_subscriber_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">rospy</span><span class="o">.</span><span class="n">loginfo</span><span class="p">(</span>
+            <span class="s1">&#39;Creating subscriber on topic &quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sub_topic</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sub</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">Subscriber</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sub_topic</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subscriber_cb</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_subscriber_cb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="c1"># Sanity check</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg_type</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">HalHWInterfaceException</span><span class="p">(</span>
+                <span class="s2">&quot;subscriber_cb:  Received incorrect message type &#39;</span><span class="si">%s</span><span class="s2">&#39; for &quot;</span>
+                <span class="s2">&quot;pin &#39;</span><span class="si">%s</span><span class="s2">&#39; of msg type &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">msg</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg_type</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_pin</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
+
+
+<span class="nd">@attr</span><span class="o">.</span><span class="n">s</span>
+<div class="viewcode-block" id="RosHalPinService"><a class="viewcode-back" href="../../hal_hw_interface.html#hal_hw_interface.ros_hal_pin.RosHalPinService">[docs]</a><span class="k">class</span> <span class="nc">RosHalPinService</span><span class="p">(</span><span class="n">RosHalPinPublisher</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;HAL pin with attached ROS service and publisher</span>
+
+<span class="sd">    This HAL pin may be set via a ROS service, in addition to</span>
+<span class="sd">    :py:func:`set_pin`.  As a subclass of</span>
+<span class="sd">    :py:class:`RosHalPinPublisher`, it also publishes its value on a</span>
+<span class="sd">    ROS topic from the :py:func:`update` function.</span>
+
+<span class="sd">    The service message type will be :code:`SetBool` from the</span>
+<span class="sd">    :py:mod:`std_srvs` package, or one of :code:`[SetUint32, SetInt32,</span>
+<span class="sd">    SetFloat64]` from this package, as appropriate for the HAL pin</span>
+<span class="sd">    type.  The default service name is :code:`&lt;compname&gt;/&lt;name&gt;`.</span>
+
+<span class="sd">    :param name: The HAL pin name</span>
+<span class="sd">    :type name: str</span>
+<span class="sd">    :param hal_type: HAL pin data type, one of :code:`[&#39;BIT&#39;, &#39;U32&#39;,</span>
+<span class="sd">      &#39;S32&#39;, &#39;FLOAT&#39;]`</span>
+<span class="sd">    :type hal_type:  :py:class:`hal_hw_interface.hal_pin_attrs.HalPinType`</span>
+<span class="sd">    :param hal_dir: HAL pin direction, one of :code:`[&#39;IN&#39;, &#39;OUT&#39;, &#39;IO&#39;]`</span>
+<span class="sd">    :type hal_dir:  :py:class:`hal_hw_interface.hal_pin_attrs.HalPinDir`</span>
+<span class="sd">    :param pub_topic: ROS publisher topic</span>
+<span class="sd">    :type pub_topic: str</span>
+<span class="sd">    :param service_name: ROS service name</span>
+<span class="sd">    :type service_name: str</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">_default_hal_dir</span> <span class="o">=</span> <span class="s1">&#39;OUT&#39;</span>
+
+    <span class="n">service_name</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
+    <span class="n">service_msg_type</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
+
+    <span class="c1"># Attribute default factories</span>
+    <span class="nd">@service_name</span><span class="o">.</span><span class="n">default</span>
+    <span class="k">def</span> <span class="nf">_service_name_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin_name</span><span class="p">)</span>
+
+    <span class="nd">@service_msg_type</span><span class="o">.</span><span class="n">default</span>
+    <span class="k">def</span> <span class="nf">_service_msg_type_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="n">HalPinType</span><span class="p">(</span><span class="s1">&#39;BIT&#39;</span><span class="p">):</span> <span class="n">SetBool</span><span class="p">,</span>
+            <span class="n">HalPinType</span><span class="p">(</span><span class="s1">&#39;U32&#39;</span><span class="p">):</span> <span class="n">SetUInt32</span><span class="p">,</span>
+            <span class="n">HalPinType</span><span class="p">(</span><span class="s1">&#39;S32&#39;</span><span class="p">):</span> <span class="n">SetInt32</span><span class="p">,</span>
+            <span class="n">HalPinType</span><span class="p">(</span><span class="s1">&#39;FLOAT&#39;</span><span class="p">):</span> <span class="n">SetFloat64</span><span class="p">,</span>
+        <span class="p">}[</span><span class="bp">self</span><span class="o">.</span><span class="n">hal_type</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_ros_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ros_service_init</span><span class="p">()</span>
+        <span class="c1"># Publish the value on a topic, too</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ros_publisher_init</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_ros_service_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">service</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">Service</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">service_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_msg_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_svc_cb</span>
+        <span class="p">)</span>
+        <span class="n">rospy</span><span class="o">.</span><span class="n">loginfo</span><span class="p">(</span><span class="s2">&quot;Service </span><span class="si">{}</span><span class="s2"> created&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">service</span><span class="o">.</span><span class="n">resolved_name</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_svc_cb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">req</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_pin</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">request_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;OK&#39;</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, John Morris.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.9.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>
