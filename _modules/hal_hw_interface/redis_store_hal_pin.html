@@ -1,0 +1,196 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>hal_hw_interface.redis_store_hal_pin &#8212; hal_hw_interface 0.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="hal_hw_interface 0.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../index.html">hal_hw_interface 0.0.0 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hal_hw_interface.redis_store_hal_pin</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">   :synopsis: HAL pin object connected to `redis_store` parameter</span>
+<span class="sd">     server for use in :py:mod:`hal_hw_interface.ros_hal_component`</span>
+
+<span class="sd">   .. moduleauthor:: John Morris &lt;john@dovetail-automata.com&gt;</span>
+
+<span class="sd">   .. inheritance-diagram::</span>
+<span class="sd">        hal_hw_interface.redis_store_hal_pin.RedisStoreHalPin</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">rospy</span>
+
+<span class="c1"># Mock patching breaks with `from redis_store import ConfigClient`; why?</span>
+<span class="kn">import</span> <span class="nn">redis_store.config</span> <span class="k">as</span> <span class="nn">redis_config</span>
+
+<span class="kn">from</span> <span class="nn">hal_hw_interface.ros_hal_pin</span> <span class="k">import</span> <span class="n">RosHalPin</span>
+
+
+<div class="viewcode-block" id="RedisStoreHalPin"><a class="viewcode-back" href="../../hal_hw_interface.redis_store_hal_pin.html#hal_hw_interface.redis_store_hal_pin.RedisStoreHalPin">[docs]</a><span class="k">class</span> <span class="nc">RedisStoreHalPin</span><span class="p">(</span><span class="n">RosHalPin</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;HAL pin attached to :code:`redis_store` ROS package&#39;s parameter</span>
+<span class="sd">    server</span>
+
+<span class="sd">    This HAL pin&#39;s value may be read from and written to a</span>
+<span class="sd">    :code:`redis_store` parameter server.  The default key name is</span>
+<span class="sd">    :code:`&lt;compname&gt;/&lt;name&gt;`.</span>
+
+<span class="sd">    :param name: The HAL pin name</span>
+<span class="sd">    :type name: str</span>
+<span class="sd">    :param hal_type: HAL pin data type, one of :code:`[&#39;BIT&#39;, &#39;U32&#39;,</span>
+<span class="sd">      &#39;S32&#39;, &#39;FLOAT&#39;]`</span>
+<span class="sd">    :type hal_type:  :py:class:`hal_hw_interface.hal_pin_attrs.HalPinType`</span>
+<span class="sd">    :param hal_dir: HAL pin direction, one of :code:`[&#39;IN&#39;, &#39;OUT&#39;, &#39;IO&#39;]`</span>
+<span class="sd">    :type hal_dir:  :py:class:`hal_hw_interface.hal_pin_attrs.HalPinDir`</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c1"># Usually (?) read output pin default value from redis</span>
+    <span class="n">_default_hal_dir</span> <span class="o">=</span> <span class="s1">&#39;OUT&#39;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_redis_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;redis_config_client&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_objs</span><span class="p">:</span>
+            <span class="c1"># Autovivify</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">redis_config</span><span class="o">.</span><span class="n">ConfigClient</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cached_objs</span><span class="p">[</span><span class="s1">&#39;redis_config_client&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_objs</span><span class="p">[</span><span class="s1">&#39;redis_config_client&#39;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_redis_param_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin_name</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RedisStoreHalPin.set_pin_from_redis"><a class="viewcode-back" href="../../hal_hw_interface.redis_store_hal_pin.html#hal_hw_interface.redis_store_hal_pin.RedisStoreHalPin.set_pin_from_redis">[docs]</a>    <span class="k">def</span> <span class="nf">set_pin_from_redis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Read and return value from redis_store</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">redis_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_redis_config</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_redis_param_key</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">redis_value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">default</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rospy</span><span class="o">.</span><span class="n">logwarn</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:  Unable to initialize offset:  &quot;</span>
+                <span class="s2">&quot;no saved value and no default given&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">compname</span>
+            <span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">new_value</span> <span class="o">=</span> <span class="n">default</span> <span class="k">if</span> <span class="n">redis_value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">redis_value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_pin</span><span class="p">(</span><span class="n">new_value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">new_value</span></div>
+
+<div class="viewcode-block" id="RedisStoreHalPin.set_redis_from_pin"><a class="viewcode-back" href="../../hal_hw_interface.redis_store_hal_pin.html#hal_hw_interface.redis_store_hal_pin.RedisStoreHalPin.set_redis_from_pin">[docs]</a>    <span class="k">def</span> <span class="nf">set_redis_from_pin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Read HAL pin value and write to redis_store</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">old_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_redis_config</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_redis_param_key</span><span class="p">)</span>
+        <span class="n">new_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pin</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_redis_config</span><span class="o">.</span><span class="n">set_param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_redis_param_key</span><span class="p">,</span> <span class="n">new_val</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">old_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isclose</span><span class="p">(</span>
+            <span class="n">new_val</span><span class="p">,</span> <span class="n">old_val</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="mf">1e-5</span>
+        <span class="p">):</span>
+            <span class="n">rospy</span><span class="o">.</span><span class="n">loginfo</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:  Updated </span><span class="si">%s</span><span class="s2"> from </span><span class="si">%.4f</span><span class="s2"> to </span><span class="si">%.4f</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">compname</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_redis_param_key</span><span class="p">,</span>
+                <span class="n">old_val</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_redis_config</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_redis_param_key</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">new_val</span></div>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="RedisStoreHalPin.shutdown"><a class="viewcode-back" href="../../hal_hw_interface.redis_store_hal_pin.html#hal_hw_interface.redis_store_hal_pin.RedisStoreHalPin.shutdown">[docs]</a>    <span class="k">def</span> <span class="nf">shutdown</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Closes the shared redis client connection.  Call this from</span>
+<span class="sd">        :py:func:`hal_hw_interface.ros_hal_component.RosHalComponent.shutdown_component`</span>
+<span class="sd">        to close the connection at the HAL component&#39;s exit.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_cached_objs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;redis_config_client&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, John Morris.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.9.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

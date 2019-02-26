@@ -1,0 +1,24 @@
+hal_hw_interface package
+========================
+
+Submodules
+----------
+
+.. toctree::
+
+   hal_hw_interface.exception
+   hal_hw_interface.hal_io_comp
+   hal_hw_interface.hal_obj_base
+   hal_hw_interface.hal_offset_mgr
+   hal_hw_interface.hal_pin_attrs
+   hal_hw_interface.redis_store_hal_pin
+   hal_hw_interface.ros_hal_component
+   hal_hw_interface.ros_hal_pin
+
+Module contents
+---------------
+
+.. automodule:: hal_hw_interface
+    :members:
+    :undoc-members:
+    :show-inheritance:

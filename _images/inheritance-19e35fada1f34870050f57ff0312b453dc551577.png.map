@@ -1,0 +1,7 @@
+<map id="inheritancef93ed36d68" name="inheritancef93ed36d68">
+<area shape="rect" id="node1" href="hal_hw_interface.hal_obj_base.html#hal_hw_interface.hal_obj_base.HalObjBase" target="_top" title="Base class for HAL component objects" alt="" coords="193,5,487,31"/>
+<area shape="rect" id="node2" href="#hal_hw_interface.ros_hal_pin.RosHalPin" target="_top" title="Basic HAL pin for use in" alt="" coords="205,79,475,104"/>
+<area shape="rect" id="node3" href="#hal_hw_interface.ros_hal_pin.RosHalPinPublisher" target="_top" title="HAL pin with attached ROS publisher" alt="" coords="176,152,504,177"/>
+<area shape="rect" id="node4" href="#hal_hw_interface.ros_hal_pin.RosHalPinService" target="_top" title="HAL pin with attached ROS service and publisher" alt="" coords="5,225,323,251"/>
+<area shape="rect" id="node5" href="#hal_hw_interface.ros_hal_pin.RosHalPinSubscriber" target="_top" title="HAL pin with attached ROS publisher and subscriber" alt="" coords="347,225,685,251"/>
+</map>

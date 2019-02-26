@@ -1,0 +1,267 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>hal_hw_interface.hal_offset_mgr &#8212; hal_hw_interface 0.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="hal_hw_interface 0.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../index.html">hal_hw_interface 0.0.0 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hal_hw_interface.hal_offset_mgr</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">rospy</span>
+<span class="kn">import</span> <span class="nn">attr</span>
+<span class="kn">from</span> <span class="nn">hal_hw_interface.redis_store_hal_pin</span> <span class="k">import</span> <span class="n">RedisStoreHalPin</span>
+<span class="kn">from</span> <span class="nn">hal_hw_interface.ros_hal_pin</span> <span class="k">import</span> <span class="n">RosHalPin</span>
+<span class="kn">from</span> <span class="nn">hal_hw_interface.ros_hal_component</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">RosHalComponent</span><span class="p">,</span>
+    <span class="n">HalHWInterfaceException</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="nd">@attr</span><span class="o">.</span><span class="n">s</span>
+<div class="viewcode-block" id="HalOffsetMgrPin"><a class="viewcode-back" href="../../hal_hw_interface.hal_offset_mgr.html#hal_hw_interface.hal_offset_mgr.HalOffsetMgrPin">[docs]</a><span class="k">class</span> <span class="nc">HalOffsetMgrPin</span><span class="p">(</span><span class="n">RedisStoreHalPin</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Represents the offset of one joint.</span>
+
+<span class="sd">    By default, the pin name is :code:`&lt;name&gt;_offset`, where</span>
+<span class="sd">    :code:`&lt;name&gt;` might simply be a joint name.  This pin connects to</span>
+<span class="sd">    an :code:`offset` comp&#39;s :code:`offset` pin.  Its value is</span>
+<span class="sd">    persisted in a redis store key</span>
+<span class="sd">    :code:`hal_offset_mgr/&lt;name&gt;_offset`.</span>
+
+<span class="sd">    A second, complementary :code:`&lt;name&gt;_fb-in` input pin connects to</span>
+<span class="sd">    the :code:`offset` comp :code:`fb-in` pin.  The</span>
+<span class="sd">    :code:`zero_joint()` function copies this value to the offset pin</span>
+<span class="sd">    and updates the redis store.</span>
+
+<span class="sd">    :param name: The HAL pin name prefix</span>
+<span class="sd">    :type name: str</span>
+<span class="sd">    :param hal_type: HAL pin data type, one of :code:`[&#39;BIT&#39;, &#39;U32&#39;,</span>
+<span class="sd">      &#39;S32&#39;, &#39;FLOAT&#39;]`</span>
+<span class="sd">    :type hal_type:  :py:class:`hal_hw_interface.hal_pin_attrs.HalPinType`</span>
+<span class="sd">    :param hal_dir: HAL pin direction, one of :code:`[&#39;IN&#39;, &#39;OUT&#39;, &#39;IO&#39;]`</span>
+<span class="sd">    :type hal_dir:  :py:class:`hal_hw_interface.hal_pin_attrs.HalPinDir`</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">_default_hal_type</span> <span class="o">=</span> <span class="s1">&#39;FLOAT&#39;</span>
+    <span class="n">_default_hal_dir</span> <span class="o">=</span> <span class="s1">&#39;OUT&#39;</span>
+
+    <span class="n">offset_pin_name</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
+    <span class="n">fb_in_pin_name</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">ib</span><span class="p">()</span>
+
+    <span class="c1"># Attribute default factories</span>
+    <span class="nd">@offset_pin_name</span><span class="o">.</span><span class="n">default</span>
+    <span class="k">def</span> <span class="nf">_offset_pin_name_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;_offset&#39;</span>
+
+    <span class="nd">@fb_in_pin_name</span><span class="o">.</span><span class="n">default</span>
+    <span class="k">def</span> <span class="nf">_fb_in_pin_name_default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;_fb-in&#39;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pin_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset_pin_name</span>
+
+    <span class="k">def</span> <span class="nf">_hal_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Set up the offset pin</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">HalOffsetMgrPin</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_hal_init</span><span class="p">()</span>
+
+        <span class="c1"># Set up fb-in pin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hal_fb_in_pin</span> <span class="o">=</span> <span class="n">RosHalPin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fb_in_pin_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hal_type</span><span class="p">,</span> <span class="s1">&#39;IN&#39;</span><span class="p">)</span>
+
+        <span class="n">rospy</span><span class="o">.</span><span class="n">loginfo</span><span class="p">(</span>
+            <span class="s1">&#39;Created </span><span class="si">{}</span><span class="s1"> pin &quot;</span><span class="si">{}</span><span class="s1">&quot; type &quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hal_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fb_in_pin_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hal_type</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="HalOffsetMgrPin.zero_joint"><a class="viewcode-back" href="../../hal_hw_interface.hal_offset_mgr.html#hal_hw_interface.hal_offset_mgr.HalOffsetMgrPin.zero_joint">[docs]</a>    <span class="k">def</span> <span class="nf">zero_joint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Zero the offset by copying the :code:`fb-in` pin to the</span>
+<span class="sd">        :code:`offset` pin and to redis</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">new_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hal_fb_in_pin</span><span class="o">.</span><span class="n">get_pin</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_pin</span><span class="p">(</span><span class="n">new_offset</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_redis_from_pin</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">new_offset</span></div>
+
+<div class="viewcode-block" id="HalOffsetMgrPin.load_offset"><a class="viewcode-back" href="../../hal_hw_interface.hal_offset_mgr.html#hal_hw_interface.hal_offset_mgr.HalOffsetMgrPin.load_offset">[docs]</a>    <span class="k">def</span> <span class="nf">load_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Load the offset value from redis and copy to the :code:`offset` pin</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_pin_from_redis</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pin</span><span class="p">()</span>  <span class="c1"># Re-read pin for feedback</span>
+        <span class="n">rospy</span><span class="o">.</span><span class="n">loginfo</span><span class="p">(</span><span class="s2">&quot;Restored </span><span class="si">%s</span><span class="s2"> offset to </span><span class="si">%.4f</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin_name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span></div></div>
+
+
+<div class="viewcode-block" id="HalOffsetMgr"><a class="viewcode-back" href="../../hal_hw_interface.hal_offset_mgr.html#hal_hw_interface.hal_offset_mgr.HalOffsetMgr">[docs]</a><span class="k">class</span> <span class="nc">HalOffsetMgr</span><span class="p">(</span><span class="n">RosHalComponent</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;HAL user component managing zero offsets that persist across</span>
+<span class="sd">    machine restarts</span>
+
+<span class="sd">    It reads joint names from the ROS parameter server, and creates</span>
+<span class="sd">    two HAL pins for each:  :code:`hal_offset_mgr.&lt;joint&gt;_offset` and</span>
+<span class="sd">    :code:`hal_offset_mgr.&lt;joint&gt;_fb-in`, meant to be attached to</span>
+<span class="sd">    corresponding pins of the joint&#39;s :code:`offset` component.</span>
+
+<span class="sd">    The machine start-up procedure should pull the</span>
+<span class="sd">    :code:`hal_offset_mgr.load_params` command pin high.  The</span>
+<span class="sd">    component will then copy saved offset values from the redis</span>
+<span class="sd">    :code:`hal_offset_mgr/&lt;joint&gt;_offset` keys to the corresponding</span>
+<span class="sd">    :code:`hal_offset_mgr.&lt;joint&gt;_offset` pins for each joint, and pull</span>
+<span class="sd">    :code:`hal_offset_mgr.load_params` low again.</span>
+
+<span class="sd">    The user interface should present the user with a &#39;zero offsets&#39;</span>
+<span class="sd">    switch that requests all offsets zeroed at the current position by</span>
+<span class="sd">    pulling the :code:`hal_offset_mgr.zero_all_joints` pin high.  The</span>
+<span class="sd">    :code:`hal_offset_mgr.enable` pin must be low, or the component</span>
+<span class="sd">    will refuse to do anything and issue an error message to that</span>
+<span class="sd">    effect.  Otherwise, the component will zero offsets by copying the</span>
+<span class="sd">    :code:`hal_offset_mgr.&lt;joint&gt;_fb-in` pins&#39; values to the</span>
+<span class="sd">    :code:`hal_offset_mgr.&lt;joint&gt;_offset` pins and the redis</span>
+<span class="sd">    :code:`hal_offset_mgr/&lt;joint&gt;_offset` keys for each joint.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">compname</span> <span class="o">=</span> <span class="s1">&#39;hal_offset_mgr&#39;</span>
+
+<div class="viewcode-block" id="HalOffsetMgr.setup_component"><a class="viewcode-back" href="../../hal_hw_interface.hal_offset_mgr.html#hal_hw_interface.hal_offset_mgr.HalOffsetMgr.setup_component">[docs]</a>    <span class="k">def</span> <span class="nf">setup_component</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Read joints from ROS parameter server and create component pins</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="c1"># get joint info from hardware_interface config</span>
+        <span class="n">joint_names</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">get_param</span><span class="p">(</span><span class="s1">&#39;hardware_interface/joints&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">joint_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">HalHWInterfaceException</span><span class="p">(</span>
+                <span class="s2">&quot;Error reading ROS param hardware_interface/joints&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># create joint offset pins</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">offset_pins</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">joint_names</span><span class="p">:</span>
+            <span class="n">o</span> <span class="o">=</span> <span class="n">HalOffsetMgrPin</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">offset_pins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
+
+        <span class="c1"># create enable and zero + load command pins</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zero_all_joints</span> <span class="o">=</span> <span class="n">RosHalPin</span><span class="p">(</span><span class="s1">&#39;zero_all_joints&#39;</span><span class="p">,</span> <span class="s1">&#39;BIT&#39;</span><span class="p">,</span> <span class="s1">&#39;IO&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_params</span> <span class="o">=</span> <span class="n">RosHalPin</span><span class="p">(</span><span class="s1">&#39;load_params&#39;</span><span class="p">,</span> <span class="s1">&#39;BIT&#39;</span><span class="p">,</span> <span class="s1">&#39;IO&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enable</span> <span class="o">=</span> <span class="n">RosHalPin</span><span class="p">(</span><span class="s1">&#39;enable&#39;</span><span class="p">,</span> <span class="s1">&#39;BIT&#39;</span><span class="p">,</span> <span class="s1">&#39;IN&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HalOffsetMgr.update"><a class="viewcode-back" href="../../hal_hw_interface.hal_offset_mgr.html#hal_hw_interface.hal_offset_mgr.HalOffsetMgr.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Periodic update function; watches for and executes</span>
+<span class="sd">        :code:`load_params` or :code:`zero_all_joints` requests</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_params</span><span class="o">.</span><span class="n">get_pin</span><span class="p">():</span>
+            <span class="c1"># Command:  Load initial offsets from stored parameters</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset_pins</span><span class="p">:</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">load_offset</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_params</span><span class="o">.</span><span class="n">set_pin</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">zero_all_joints</span><span class="o">.</span><span class="n">get_pin</span><span class="p">():</span>
+            <span class="c1"># Command:  Zero all joints</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable</span><span class="o">.</span><span class="n">get_pin</span><span class="p">():</span>
+                <span class="n">rospy</span><span class="o">.</span><span class="n">logerr</span><span class="p">(</span><span class="s2">&quot;Not zeroing joints while enabled&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">zero_all_joints</span><span class="o">.</span><span class="n">set_pin</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+                <span class="k">return</span>
+
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset_pins</span><span class="p">:</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">zero_joint</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">zero_all_joints</span><span class="o">.</span><span class="n">set_pin</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">rospy</span><span class="o">.</span><span class="n">loginfo</span><span class="p">(</span><span class="s2">&quot;All joints zeroed&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HalOffsetMgr.shutdown_component"><a class="viewcode-back" href="../../hal_hw_interface.hal_offset_mgr.html#hal_hw_interface.hal_offset_mgr.HalOffsetMgr.shutdown_component">[docs]</a>    <span class="k">def</span> <span class="nf">shutdown_component</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Close redis client connection at shutdown</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">RedisStoreHalPin</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, John Morris.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.9.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

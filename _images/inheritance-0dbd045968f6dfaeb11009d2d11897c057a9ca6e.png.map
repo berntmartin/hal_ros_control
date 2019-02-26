@@ -1,0 +1,4 @@
+<map id="inheritance1755edc1d9" name="inheritance1755edc1d9">
+<area shape="rect" id="node1" href="#hal_hw_interface.hal_pin_attrs.HalPinAttrBase" target="_top" title="Subclass int to make a simple interface for accessing" alt="" coords="5,5,320,31"/>
+<area shape="rect" id="node2" href="#hal_hw_interface.hal_pin_attrs.HalPinDir" target="_top" title="A HAL pin direction" alt="" coords="25,79,301,104"/>
+</map>

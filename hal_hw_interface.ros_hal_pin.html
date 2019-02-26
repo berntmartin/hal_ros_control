@@ -1,0 +1,329 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>hal_hw_interface.ros_hal_pin module &#8212; hal_hw_interface 0.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="hal_hw_interface 0.0.0 documentation" href="index.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="index.html">hal_hw_interface 0.0.0 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-hal_hw_interface.ros_hal_pin">
+<span id="hal-hw-interface-ros-hal-pin-module"></span><h1>hal_hw_interface.ros_hal_pin module<a class="headerlink" href="#module-hal_hw_interface.ros_hal_pin" title="Permalink to this headline">¶</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">synopsis:</th><td class="field-body">ROS-connected HAL pin objects for use in
+<a class="reference internal" href="hal_hw_interface.ros_hal_component.html#module-hal_hw_interface.ros_hal_component" title="hal_hw_interface.ros_hal_component"><code class="xref py py-mod docutils literal"><span class="pre">hal_hw_interface.ros_hal_component</span></code></a></td>
+</tr>
+</tbody>
+</table>
+<img src="_images/inheritance-19e35fada1f34870050f57ff0312b453dc551577.png" alt="Inheritance diagram of hal_hw_interface.ros_hal_pin.RosHalPin, hal_hw_interface.ros_hal_pin.RosHalPinPublisher, hal_hw_interface.ros_hal_pin.RosHalPinSubscriber, hal_hw_interface.ros_hal_pin.RosHalPinService" usemap="#inheritancef93ed36d68" class="inheritance"/>
+<map id="inheritancef93ed36d68" name="inheritancef93ed36d68">
+<area shape="rect" id="node1" href="hal_hw_interface.hal_obj_base.html#hal_hw_interface.hal_obj_base.HalObjBase" target="_top" title="Base class for HAL component objects" alt="" coords="193,5,487,31"/>
+<area shape="rect" id="node2" href="#hal_hw_interface.ros_hal_pin.RosHalPin" target="_top" title="Basic HAL pin for use in" alt="" coords="205,79,475,104"/>
+<area shape="rect" id="node3" href="#hal_hw_interface.ros_hal_pin.RosHalPinPublisher" target="_top" title="HAL pin with attached ROS publisher" alt="" coords="176,152,504,177"/>
+<area shape="rect" id="node4" href="#hal_hw_interface.ros_hal_pin.RosHalPinService" target="_top" title="HAL pin with attached ROS service and publisher" alt="" coords="5,225,323,251"/>
+<area shape="rect" id="node5" href="#hal_hw_interface.ros_hal_pin.RosHalPinSubscriber" target="_top" title="HAL pin with attached ROS publisher and subscriber" alt="" coords="347,225,685,251"/>
+</map>
+<dl class="class">
+<dt id="hal_hw_interface.ros_hal_pin.RosHalPin">
+<em class="property">class </em><code class="descclassname">hal_hw_interface.ros_hal_pin.</code><code class="descname">RosHalPin</code><span class="sig-paren">(</span><em>name</em>, <em>hal_type=NOTHING</em>, <em>hal_dir=NOTHING</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hal_hw_interface/ros_hal_pin.html#RosHalPin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hal_hw_interface.ros_hal_pin.RosHalPin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="hal_hw_interface.hal_obj_base.html#hal_hw_interface.hal_obj_base.HalObjBase" title="hal_hw_interface.hal_obj_base.HalObjBase"><code class="xref py py-class docutils literal"><span class="pre">hal_hw_interface.hal_obj_base.HalObjBase</span></code></a></p>
+<p>Basic HAL pin for use in
+<a class="reference internal" href="hal_hw_interface.ros_hal_component.html#hal_hw_interface.ros_hal_component.RosHalComponent" title="hal_hw_interface.ros_hal_component.RosHalComponent"><code class="xref py py-class docutils literal"><span class="pre">hal_hw_interface.ros_hal_component.RosHalComponent</span></code></a>
+user components</p>
+<p>This is a basic HAL pin with no special connection to ROS.  It may
+be used in a HAL component, and serves as a base class for other
+pins.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; The HAL pin name</li>
+<li><strong>hal_type</strong> (<a class="reference internal" href="hal_hw_interface.hal_pin_attrs.html#hal_hw_interface.hal_pin_attrs.HalPinType" title="hal_hw_interface.hal_pin_attrs.HalPinType"><code class="xref py py-class docutils literal"><span class="pre">hal_hw_interface.hal_pin_attrs.HalPinType</span></code></a>) &#8211; HAL pin data type, one of <code class="code docutils literal"><span class="pre">['BIT',</span> <span class="pre">'U32',</span>
+<span class="pre">'S32',</span> <span class="pre">'FLOAT']</span></code></li>
+<li><strong>hal_dir</strong> (<a class="reference internal" href="hal_hw_interface.hal_pin_attrs.html#hal_hw_interface.hal_pin_attrs.HalPinDir" title="hal_hw_interface.hal_pin_attrs.HalPinDir"><code class="xref py py-class docutils literal"><span class="pre">hal_hw_interface.hal_pin_attrs.HalPinDir</span></code></a>) &#8211; HAL pin direction, one of <code class="code docutils literal"><span class="pre">['IN',</span> <span class="pre">'OUT',</span> <span class="pre">'IO']</span></code></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="hal_hw_interface.ros_hal_pin.RosHalPin.compname">
+<code class="descname">compname</code><a class="headerlink" href="#hal_hw_interface.ros_hal_pin.RosHalPin.compname" title="Permalink to this definition">¶</a></dt>
+<dd><p>The HAL component name; read-only property</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a> of component name</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="hal_hw_interface.ros_hal_pin.RosHalPin.get_pin">
+<code class="descname">get_pin</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hal_hw_interface/ros_hal_pin.html#RosHalPin.get_pin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hal_hw_interface.ros_hal_pin.RosHalPin.get_pin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the HAL pin&#8217;s value</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">HAL pin&#8217;s value</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hal_hw_interface.ros_hal_pin.RosHalPin.pin_name">
+<code class="descname">pin_name</code><a class="headerlink" href="#hal_hw_interface.ros_hal_pin.RosHalPin.pin_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the pin_name; read-only property</p>
+<p>In some subclasses, this may not be the same as the
+<code class="code docutils literal"><span class="pre">name</span></code> parameter supplied to the constructor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a> pin name</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="hal_hw_interface.ros_hal_pin.RosHalPin.set_pin">
+<code class="descname">set_pin</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hal_hw_interface/ros_hal_pin.html#RosHalPin.set_pin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hal_hw_interface.ros_hal_pin.RosHalPin.set_pin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the HAL pin&#8217;s value</p>
+<p>Does not apply to pins initialized with <code class="code docutils literal"><span class="pre">hal_dir='IN'</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> &#8211; The value to set</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="hal_hw_interface.ros_hal_pin.RosHalPin.update">
+<code class="descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hal_hw_interface/ros_hal_pin.html#RosHalPin.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hal_hw_interface.ros_hal_pin.RosHalPin.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>An update function; used in some subclasses</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="hal_hw_interface.ros_hal_pin.RosHalPinPublisher">
+<em class="property">class </em><code class="descclassname">hal_hw_interface.ros_hal_pin.</code><code class="descname">RosHalPinPublisher</code><span class="sig-paren">(</span><em>name</em>, <em>hal_type=NOTHING</em>, <em>hal_dir=NOTHING</em>, <em>pub_topic=NOTHING</em>, <em>msg_type=NOTHING</em>, <em>last_value=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hal_hw_interface/ros_hal_pin.html#RosHalPinPublisher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hal_hw_interface.ros_hal_pin.RosHalPinPublisher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hal_hw_interface.ros_hal_pin.RosHalPin" title="hal_hw_interface.ros_hal_pin.RosHalPin"><code class="xref py py-class docutils literal"><span class="pre">hal_hw_interface.ros_hal_pin.RosHalPin</span></code></a></p>
+<p>HAL pin with attached ROS publisher</p>
+<p>This HAL pin is set with publishes its value on a ROS topic,
+<code class="code docutils literal"><span class="pre">&lt;compname&gt;/&lt;name&gt;</span></code> by default.  Its <a class="reference internal" href="#hal_hw_interface.ros_hal_pin.RosHalPinPublisher.update" title="hal_hw_interface.ros_hal_pin.RosHalPinPublisher.update"><code class="xref py py-func docutils literal"><span class="pre">update()</span></code></a> function
+should be called from the
+<a class="reference internal" href="hal_hw_interface.ros_hal_component.html#hal_hw_interface.ros_hal_component.RosHalComponent.update" title="hal_hw_interface.ros_hal_component.RosHalComponent.update"><code class="xref py py-func docutils literal"><span class="pre">hal_hw_interface.ros_hal_component.RosHalComponent.update()</span></code></a>
+function.</p>
+<p>It will only publish its value when the value has changed.  For
+<code class="xref py py-class docutils literal"><span class="pre">FLOAT</span></code> types, absolute and relative tolerances are read
+from the <code class="code docutils literal"><span class="pre">&lt;compname&gt;/absolute_tolerance</span></code> and
+<code class="code docutils literal"><span class="pre">&lt;compname&gt;/relative_tolerance</span></code> ROS parameters and default
+to <code class="code docutils literal"><span class="pre">1e-9</span></code> each, respectively.</p>
+<p>The publisher message type will be one of <code class="code docutils literal"><span class="pre">[Bool,</span> <span class="pre">UInt32,</span>
+<span class="pre">Int32,</span> <span class="pre">Float64]</span></code> from the <code class="xref py py-mod docutils literal"><span class="pre">std_msgs</span></code> ROS package, as appropriate
+for the HAL pin type.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; The HAL pin name</li>
+<li><strong>hal_type</strong> (<a class="reference internal" href="hal_hw_interface.hal_pin_attrs.html#hal_hw_interface.hal_pin_attrs.HalPinType" title="hal_hw_interface.hal_pin_attrs.HalPinType"><code class="xref py py-class docutils literal"><span class="pre">hal_hw_interface.hal_pin_attrs.HalPinType</span></code></a>) &#8211; HAL pin data type, one of <code class="code docutils literal"><span class="pre">['BIT',</span> <span class="pre">'U32',</span>
+<span class="pre">'S32',</span> <span class="pre">'FLOAT']</span></code></li>
+<li><strong>hal_dir</strong> (<a class="reference internal" href="hal_hw_interface.hal_pin_attrs.html#hal_hw_interface.hal_pin_attrs.HalPinDir" title="hal_hw_interface.hal_pin_attrs.HalPinDir"><code class="xref py py-class docutils literal"><span class="pre">hal_hw_interface.hal_pin_attrs.HalPinDir</span></code></a>) &#8211; HAL pin direction, one of <code class="code docutils literal"><span class="pre">['IN',</span> <span class="pre">'OUT',</span> <span class="pre">'IO']</span></code></li>
+<li><strong>pub_topic</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; ROS publisher topic</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">Parameter <code class="code docutils literal"><span class="pre">hal_dir</span></code> needs a validator; not all pin
+directions make sense for all subclasses</p>
+</div>
+<div class="admonition-todo admonition" id="index-1">
+<p class="first admonition-title">Todo</p>
+<p class="last">Link documentation to ROS <code class="docutils literal"><span class="pre">srv</span></code> messages</p>
+</div>
+<dl class="method">
+<dt id="hal_hw_interface.ros_hal_pin.RosHalPinPublisher.update">
+<code class="descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hal_hw_interface/ros_hal_pin.html#RosHalPinPublisher.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hal_hw_interface.ros_hal_pin.RosHalPinPublisher.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>If pin value has changed, publish to ROS topic</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="hal_hw_interface.ros_hal_pin.RosHalPinService">
+<em class="property">class </em><code class="descclassname">hal_hw_interface.ros_hal_pin.</code><code class="descname">RosHalPinService</code><span class="sig-paren">(</span><em>name</em>, <em>hal_type=NOTHING</em>, <em>hal_dir=NOTHING</em>, <em>pub_topic=NOTHING</em>, <em>msg_type=NOTHING</em>, <em>last_value=None</em>, <em>service_name=NOTHING</em>, <em>service_msg_type=NOTHING</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hal_hw_interface/ros_hal_pin.html#RosHalPinService"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hal_hw_interface.ros_hal_pin.RosHalPinService" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hal_hw_interface.ros_hal_pin.RosHalPinPublisher" title="hal_hw_interface.ros_hal_pin.RosHalPinPublisher"><code class="xref py py-class docutils literal"><span class="pre">hal_hw_interface.ros_hal_pin.RosHalPinPublisher</span></code></a></p>
+<p>HAL pin with attached ROS service and publisher</p>
+<p>This HAL pin may be set via a ROS service, in addition to
+<code class="xref py py-func docutils literal"><span class="pre">set_pin()</span></code>.  As a subclass of
+<a class="reference internal" href="#hal_hw_interface.ros_hal_pin.RosHalPinPublisher" title="hal_hw_interface.ros_hal_pin.RosHalPinPublisher"><code class="xref py py-class docutils literal"><span class="pre">RosHalPinPublisher</span></code></a>, it also publishes its value on a
+ROS topic from the <code class="xref py py-func docutils literal"><span class="pre">update()</span></code> function.</p>
+<p>The service message type will be <code class="code docutils literal"><span class="pre">SetBool</span></code> from the
+<code class="xref py py-mod docutils literal"><span class="pre">std_srvs</span></code> package, or one of <code class="code docutils literal"><span class="pre">[SetUint32,</span> <span class="pre">SetInt32,</span>
+<span class="pre">SetFloat64]</span></code> from this package, as appropriate for the HAL pin
+type.  The default service name is <code class="code docutils literal"><span class="pre">&lt;compname&gt;/&lt;name&gt;</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; The HAL pin name</li>
+<li><strong>hal_type</strong> (<a class="reference internal" href="hal_hw_interface.hal_pin_attrs.html#hal_hw_interface.hal_pin_attrs.HalPinType" title="hal_hw_interface.hal_pin_attrs.HalPinType"><code class="xref py py-class docutils literal"><span class="pre">hal_hw_interface.hal_pin_attrs.HalPinType</span></code></a>) &#8211; HAL pin data type, one of <code class="code docutils literal"><span class="pre">['BIT',</span> <span class="pre">'U32',</span>
+<span class="pre">'S32',</span> <span class="pre">'FLOAT']</span></code></li>
+<li><strong>hal_dir</strong> (<a class="reference internal" href="hal_hw_interface.hal_pin_attrs.html#hal_hw_interface.hal_pin_attrs.HalPinDir" title="hal_hw_interface.hal_pin_attrs.HalPinDir"><code class="xref py py-class docutils literal"><span class="pre">hal_hw_interface.hal_pin_attrs.HalPinDir</span></code></a>) &#8211; HAL pin direction, one of <code class="code docutils literal"><span class="pre">['IN',</span> <span class="pre">'OUT',</span> <span class="pre">'IO']</span></code></li>
+<li><strong>pub_topic</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; ROS publisher topic</li>
+<li><strong>service_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; ROS service name</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="hal_hw_interface.ros_hal_pin.RosHalPinSubscriber">
+<em class="property">class </em><code class="descclassname">hal_hw_interface.ros_hal_pin.</code><code class="descname">RosHalPinSubscriber</code><span class="sig-paren">(</span><em>name</em>, <em>hal_type=NOTHING</em>, <em>hal_dir=NOTHING</em>, <em>pub_topic=NOTHING</em>, <em>msg_type=NOTHING</em>, <em>last_value=None</em>, <em>sub_topic=NOTHING</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hal_hw_interface/ros_hal_pin.html#RosHalPinSubscriber"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hal_hw_interface.ros_hal_pin.RosHalPinSubscriber" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hal_hw_interface.ros_hal_pin.RosHalPinPublisher" title="hal_hw_interface.ros_hal_pin.RosHalPinPublisher"><code class="xref py py-class docutils literal"><span class="pre">hal_hw_interface.ros_hal_pin.RosHalPinPublisher</span></code></a></p>
+<p>HAL pin with attached ROS publisher and subscriber</p>
+<p>This HAL pin isn&#8217;t set via <code class="xref py py-func docutils literal"><span class="pre">set_pin()</span></code>, but subscribes to a
+ROS topic for its value.  As a subclass of
+<a class="reference internal" href="#hal_hw_interface.ros_hal_pin.RosHalPinPublisher" title="hal_hw_interface.ros_hal_pin.RosHalPinPublisher"><code class="xref py py-class docutils literal"><span class="pre">RosHalPinPublisher</span></code></a>, it also publishes its value on a
+ROS topic from the <code class="xref py py-func docutils literal"><span class="pre">update()</span></code> function.</p>
+<p>The subscriber message type will be one of <code class="code docutils literal"><span class="pre">[Bool,</span> <span class="pre">UInt32,</span>
+<span class="pre">Int32,</span> <span class="pre">Float64]</span></code> from the <code class="xref py py-mod docutils literal"><span class="pre">std_msgs</span></code> ROS package, as
+appropriate for the HAL pin type.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; The HAL pin name</li>
+<li><strong>hal_type</strong> (<a class="reference internal" href="hal_hw_interface.hal_pin_attrs.html#hal_hw_interface.hal_pin_attrs.HalPinType" title="hal_hw_interface.hal_pin_attrs.HalPinType"><code class="xref py py-class docutils literal"><span class="pre">hal_hw_interface.hal_pin_attrs.HalPinType</span></code></a>) &#8211; HAL pin data type, one of <cite>[&#8216;BIT&#8217;, &#8216;U32&#8217;, &#8216;S32&#8217;, &#8216;FLOAT&#8217;]</cite></li>
+<li><strong>hal_dir</strong> (<a class="reference internal" href="hal_hw_interface.hal_pin_attrs.html#hal_hw_interface.hal_pin_attrs.HalPinDir" title="hal_hw_interface.hal_pin_attrs.HalPinDir"><code class="xref py py-class docutils literal"><span class="pre">hal_hw_interface.hal_pin_attrs.HalPinDir</span></code></a>) &#8211; HAL pin direction, one of <cite>[&#8216;OUT&#8217;, &#8216;IO&#8217;]</cite></li>
+<li><strong>pub_topic</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; ROS publisher topic</li>
+<li><strong>sub_topic</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; ROS subscriber topic</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="hal_hw_interface.ros_hal_pin.isclose">
+<code class="descclassname">hal_hw_interface.ros_hal_pin.</code><code class="descname">isclose</code><span class="sig-paren">(</span><em>a</em>, <em>b</em>, <em>rel_tol=1e-09</em>, <em>abs_tol=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hal_hw_interface/ros_hal_pin.html#isclose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hal_hw_interface.ros_hal_pin.isclose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="_sources/hal_hw_interface.ros_hal_pin.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, John Morris.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.9.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

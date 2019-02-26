@@ -1,0 +1,5 @@
+<map id="inheritance3ce70ed122" name="inheritance3ce70ed122">
+<area shape="rect" id="node1" href="hal_hw_interface.hal_obj_base.html#hal_hw_interface.hal_obj_base.HalObjBase" target="_top" title="Base class for HAL component objects" alt="" coords="42,5,335,31"/>
+<area shape="rect" id="node3" href="hal_hw_interface.ros_hal_pin.html#hal_hw_interface.ros_hal_pin.RosHalPin" target="_top" title="Basic HAL pin for use in" alt="" coords="53,79,324,104"/>
+<area shape="rect" id="node2" href="#hal_hw_interface.redis_store_hal_pin.RedisStoreHalPin" target="_top" title="HAL pin attached to :code:`redis_store` ROS package&#39;s parameter" alt="" coords="5,152,372,177"/>
+</map>
