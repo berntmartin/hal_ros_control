@@ -8,6 +8,7 @@ Submodules
 
    hal_hw_interface.exception
    hal_hw_interface.hal_io_comp
+   hal_hw_interface.hal_mgr
    hal_hw_interface.hal_obj_base
    hal_hw_interface.hal_offset_mgr
    hal_hw_interface.hal_pin_attrs
