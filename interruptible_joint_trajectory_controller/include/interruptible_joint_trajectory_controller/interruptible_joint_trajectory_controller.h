@@ -115,6 +115,7 @@ public:
 
 protected:
     void update(const ros::Time& time, const ros::Duration& period);
+    virtual void onTrajectoryError(int error_code);
     /*\}*/
 
     // Command handling, not real-time safe
@@ -295,6 +296,7 @@ abortActiveGoalWithError(RealtimeGoalHandlePtr &current_active_goal, ProbeSettin
     // Cancels the currently active goal
     if (!stop_event_triggered_)
     {
+        error_code_.set(error_code);
         if (current_active_goal) {
             // TODO standardize error codes
             current_active_goal->preallocated_result_->error_code = error_code;
@@ -317,6 +319,8 @@ completeActiveGoal(RealtimeGoalHandlePtr &current_active_goal, ProbeSettings con
     // Cancels the currently active goal
     if (!stop_event_triggered_)
     {
+        // Not sure if this is necessary
+        error_code_.set(0);
         if (current_active_goal) {
             // Marks the current goal as canceled
             current_active_goal->preallocated_result_->error_code = 0;
@@ -339,6 +343,11 @@ update(const ros::Time& time, const ros::Duration& period)
     joint_trajectory_controller::TimeData time_data;
     JointTrajectoryControllerType::prepare_for_update(time, period, curr_traj_ptr, time_data);
     typename JointTrajectoryControllerType::RealtimeGoalHandlePtr current_active_goal(this->rt_active_goal_);
+
+    if (!curr_traj_ptr->motion_settings.applied) {
+        // A new trajectory has been loaded, so clear the previous error pin
+        error_code_.set(0);
+    }
 
     auto probe_transition = probe_handle.acquireProbeTransition();
     auto const probe_capture_type = probe_handle.getProbeCapture();
@@ -411,6 +420,15 @@ update(const ros::Time& time, const ros::Duration& period)
     }
     JointTrajectoryControllerType::update_joint_trajectory(curr_traj_ptr->trajectory, time_data, period);
 }
+
+template <class SegmentImpl, class HardwareInterface>
+void InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
+onTrajectoryError(int error_code)
+{
+    // Publish the error code
+    error_code_.set(error_code);
+}
+
 
 /**
  * Check if all joints have reached their goal state, and mark the goal handle as succeeded if so.
