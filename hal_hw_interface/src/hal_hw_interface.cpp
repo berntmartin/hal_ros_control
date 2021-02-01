@@ -65,6 +65,9 @@ void HalHWInterface::init_hal(void (*funct)(void*, long))
   }  // end for each joint
   registerInterface(&joint_event_data_interface_);
 
+  generic_int32_interface_.registerHandle(machinekit_interfaces::GenericInt32Handle("controller_status", &error_code_));
+  registerInterface(&generic_int32_interface_);
+
   // Call base class init to set register interfaces and handles for joint state / command / limits
   ros_control_boilerplate::GenericHWInterface::init();
 
@@ -143,6 +146,13 @@ void HalHWInterface::init_hal(void (*funct)(void*, long))
   if (!create_s32_pin(&probe_transition_ptr_, HAL_OUT, "probe-transition"))
   {
     HAL_ROS_LOG_ERR(CNAME, "%s: Failed to initialize probe-transition pin", CNAME);
+    // return false; // FIXME
+    return;
+  }
+
+  if (!create_s32_pin(&error_code_ptr_, HAL_OUT, "error-code"))
+  {
+    HAL_ROS_LOG_ERR(CNAME, "%s: Failed to initialize error-code pin", CNAME);
     // return false; // FIXME
     return;
   }
@@ -319,6 +329,9 @@ void HalHWInterface::write(ros::Duration& elapsed_time)
   }
   **probe_capture_ptr_ = probe_request_capture_type_;
   **probe_transition_ptr_ = probe_transition_;
+
+  // Export the error code pointer
+  **error_code_ptr_ = error_code_;
 }
 
 void HalHWInterface::enforceLimits(ros::Duration& period)

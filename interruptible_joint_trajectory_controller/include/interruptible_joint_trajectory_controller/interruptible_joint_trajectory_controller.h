@@ -62,6 +62,7 @@
 #include <machinekit_interfaces/realtime_event_interface.h>
 #include <machinekit_interfaces/probe_interface.h>
 #include <machinekit_interfaces/joint_event_interface.h>
+#include <machinekit_interfaces/generic_interface.h>
 
 // Bring in enums
 using machinekit_interfaces::ProbeTransitions;
@@ -145,6 +146,7 @@ protected:
     std::vector<machinekit_interfaces::JointEventDataHandle> probe_joint_results_;
     machinekit_interfaces::ProbeHandle probe_handle;
     machinekit_interfaces::RealtimeEventHandle stop_event;
+    machinekit_interfaces::GenericInt32Handle error_code_;
     bool stop_event_triggered_;
 };
 
@@ -243,6 +245,32 @@ bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::ini
         hardware_interface::InterfaceResources iface_res(hw_if_typename, probe_data_intf->getClaims());
         claimed_resources.push_back(iface_res);
         probe_data_intf->clearClaims();
+    }
+    {
+        ROS_INFO_STREAM_NAMED(this->name_, "Claiming HAL pin resources");
+        machinekit_interfaces::GenericInt32Interface* generic_int32_intf = robot_hw->get<machinekit_interfaces::GenericInt32Interface>();
+        auto hw_if_typename = hardware_interface::internal::demangledTypeName<machinekit_interfaces::GenericInt32Interface>();
+        if (!generic_int32_intf)
+        {
+            ROS_ERROR("This controller requires a hardware interface of type '%s'."
+                                " Make sure this is registered in the hardware_interface::RobotHW class.",
+                                hw_if_typename.c_str());
+            return false;
+        }
+        generic_int32_intf->clearClaims();
+
+        try {
+            error_code_ = generic_int32_intf->getHandle("controller_status");
+        }
+        catch (...)
+        {
+            ROS_ERROR_STREAM_NAMED(this->name_, "Could not find controller_status in '" <<
+                                                         hw_if_typename << "'.");
+            return false;
+        }
+        hardware_interface::InterfaceResources iface_res(hw_if_typename, generic_int32_intf->getClaims());
+        claimed_resources.push_back(iface_res);
+        generic_int32_intf->clearClaims();
     }
 
     ROS_INFO_STREAM_NAMED(this->name_, "Claimed " << claimed_resources.size() << " interfaces");

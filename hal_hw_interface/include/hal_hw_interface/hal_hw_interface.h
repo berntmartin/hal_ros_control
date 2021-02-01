@@ -37,6 +37,7 @@
 #include <machinekit_interfaces/realtime_event_interface.h>
 #include <machinekit_interfaces/probe_interface.h>
 #include <machinekit_interfaces/joint_event_interface.h>
+#include <machinekit_interfaces/generic_interface.h>
 
 // HAL
 #include <hal.h>
@@ -166,6 +167,7 @@ protected:
   /** indicates if the probe signal is active in HAL */
   int probe_signal_;
   int probe_transition_;
+  int controller_error_code_; // Reported from the controller, for triggering halscope captures
   ros::Time probe_event_time_;
 
   /** Are we expecting a probe trip? */
@@ -179,6 +181,7 @@ protected:
 
   machinekit_interfaces::ProbeInterface probe_interface_;
   machinekit_interfaces::JointEventDataInterface joint_event_data_interface_;
+  machinekit_interfaces::GenericInt32Interface generic_int32_interface_;
 
 private:
   // Joints:  HAL storage
@@ -210,6 +213,9 @@ private:
   bool** probe_signal_ptr_;  // HAL input pin, probe signal
   int** probe_transition_ptr_;  // HAL output pin for detected probe transition (reference)
   int** probe_capture_ptr_;  // HAL output pin for expected capture type (reference)
+
+  int error_code_; // Placeholder for controller to pass error-code value
+  int** error_code_ptr_;  // HAL output pin for controller error state
 
 };  // HalHWInterface
 
