@@ -106,6 +106,7 @@ void HalHWInterface::init_hal(void (*funct)(void*, long))
         !create_joint_float_pins(ix, &joint_eff_cmd_ptrs_, HAL_OUT, "eff-"
                                                                     "cmd") ||
         !create_joint_float_pins(ix, &probe_joint_result_ptrs_, HAL_OUT, "probe-pos") ||
+        !create_joint_float_pins(ix, &joint_ferror_ptrs_, HAL_OUT, "ferror") ||
         !create_joint_float_pins(ix, &joint_pos_fb_ptrs_, HAL_IN, "pos-fb") ||
         !create_joint_float_pins(ix, &joint_vel_fb_ptrs_, HAL_IN, "vel-fb") ||
         !create_joint_float_pins(ix, &joint_eff_fb_ptrs_, HAL_IN, "eff-fb") ||
@@ -298,11 +299,16 @@ void HalHWInterface::write(ros::Duration& elapsed_time)
   // Copy controller joint command values to HAL joint command pins
   for (std::size_t joint_id = 0; joint_id < num_joints_; ++joint_id)
   {
+    // How close did we come to the last commanded position after 1 update?
+    //**joint_ferror_ptrs_[joint_id] = (**joint_pos_cmd_ptrs_[joint_id] - joint_position_[joint_id]);
+    // How close are we to the CURRENT commanded position? This will be nonzero if feedforward isn't perfect
+    **joint_ferror_ptrs_[joint_id] = (joint_position_command_[joint_id] - joint_position_[joint_id]);
     **joint_pos_cmd_ptrs_[joint_id] = joint_position_command_[joint_id];
     **joint_vel_cmd_ptrs_[joint_id] = joint_velocity_command_[joint_id];
     **joint_eff_cmd_ptrs_[joint_id] = joint_effort_command_[joint_id];
       // In units / sec^2
     **joint_accel_ptrs_[joint_id] = (joint_velocity_[joint_id] - joint_velocity_prev_[joint_id]) / elapsed_time_seconds;
+
   }
 
   if (probe_request_capture_type_ == probe_transition_) {

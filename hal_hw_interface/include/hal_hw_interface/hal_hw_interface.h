@@ -201,6 +201,8 @@ private:
   //!     Probe Position result
   std::vector<double**> probe_joint_result_ptrs_; // HAL output pins for probe result (reference)
 
+
+  std::vector<double**> joint_ferror_ptrs_;
   // TODO hal pin for realtime safety input
 
   // TODO condense these with the preview member variables to remove the indirection / extra copy
