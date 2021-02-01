@@ -52,6 +52,7 @@ void HalHWInterface::init_hal(void (*funct)(void*, long))
   probe_joint_position_.resize(num_joints_, 0.0);
   probe_joint_velocity_.resize(num_joints_, 0.0);
   probe_joint_effort_.resize(num_joints_, 0.0);
+  joint_velocity_prev_.resize(num_joints_, 0.0);
 
   // Initialize interfaces for probe position (done deliberately before the init below since that's where the interfaces are registered)
   for (std::size_t joint_id = 0; joint_id < num_joints_; ++joint_id)
@@ -107,7 +108,8 @@ void HalHWInterface::init_hal(void (*funct)(void*, long))
         !create_joint_float_pins(ix, &probe_joint_result_ptrs_, HAL_OUT, "probe-pos") ||
         !create_joint_float_pins(ix, &joint_pos_fb_ptrs_, HAL_IN, "pos-fb") ||
         !create_joint_float_pins(ix, &joint_vel_fb_ptrs_, HAL_IN, "vel-fb") ||
-        !create_joint_float_pins(ix, &joint_eff_fb_ptrs_, HAL_IN, "eff-fb"))
+        !create_joint_float_pins(ix, &joint_eff_fb_ptrs_, HAL_IN, "eff-fb") ||
+        !create_joint_float_pins(ix, &joint_accel_ptrs_, HAL_OUT, "accel"))
     {
       HAL_ROS_LOG_ERR(CNAME, "%s: Failed to initialize joint %zu %s.%s", CNAME,
                       ix, CNAME, joint_names_[ix].c_str());
@@ -238,11 +240,14 @@ bool HalHWInterface::create_s32_pin(int*** ptr, hal_pin_dir_t dir,
   return true;
 }
 
-void HalHWInterface::read_with_time(ros::Duration& elapsed_time, ros::Time const &current_time)
+void HalHWInterface::read_with_time(ros::Duration& elapsed_time, ros::Time const &current_time, ros::Duration period)
 {
   // Copy HAL joint feedback pin values to controller joint states
   for (std::size_t joint_id = 0; joint_id < num_joints_; ++joint_id)
   {
+    // Cache this for acceleration difference later
+    joint_velocity_prev_[joint_id] = joint_velocity_[joint_id];
+
     joint_position_[joint_id] = **joint_pos_fb_ptrs_[joint_id];
     joint_velocity_[joint_id] = **joint_vel_fb_ptrs_[joint_id];
     joint_effort_[joint_id] = **joint_eff_fb_ptrs_[joint_id];
@@ -285,6 +290,9 @@ void HalHWInterface::read_with_time(ros::Duration& elapsed_time, ros::Time const
 
 void HalHWInterface::write(ros::Duration& elapsed_time)
 {
+    const static ros::Duration min_time(0,1);
+    double elapsed_time_seconds = std::max(elapsed_time.toSec(), min_time.toSec());
+
   // Enforce joint limits
   enforceLimits(elapsed_time);
   // Copy controller joint command values to HAL joint command pins
@@ -293,6 +301,8 @@ void HalHWInterface::write(ros::Duration& elapsed_time)
     **joint_pos_cmd_ptrs_[joint_id] = joint_position_command_[joint_id];
     **joint_vel_cmd_ptrs_[joint_id] = joint_velocity_command_[joint_id];
     **joint_eff_cmd_ptrs_[joint_id] = joint_effort_command_[joint_id];
+      // In units / sec^2
+    **joint_accel_ptrs_[joint_id] = (joint_velocity_[joint_id] - joint_velocity_prev_[joint_id]) / elapsed_time_seconds;
   }
 
   if (probe_request_capture_type_ == probe_transition_) {

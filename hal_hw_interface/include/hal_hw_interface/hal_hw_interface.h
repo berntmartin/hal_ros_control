@@ -131,8 +131,8 @@ public:
    * \brief Read the state from the robot hardware.
    * \param elapsed_time - period since last run
    */
-  void read(ros::Duration& elapsed_time) { read_with_time(elapsed_time, ros::Time::now());};
-  void read_with_time(ros::Duration& elapsed_time, ros::Time const &current_time);
+  void read(ros::Duration& elapsed_time) { read_with_time(elapsed_time, ros::Time::now(), ros::Duration(0));};
+  void read_with_time(ros::Duration& elapsed_time, ros::Time const &current_time, ros::Duration period);
 
   /**
    * \brief Tell control loop whether controller reset is needed in update()
@@ -172,6 +172,7 @@ protected:
   int probe_request_capture_type_;
   int probe_result_type_;
 
+  std::vector<double> joint_velocity_prev_; // For calculating acceleration feedback
   std::vector<double> probe_joint_position_;
   std::vector<double> probe_joint_velocity_;
   std::vector<double> probe_joint_effort_;
@@ -193,6 +194,7 @@ private:
   std::vector<double**> joint_pos_fb_ptrs_;
   //!     Joint velocity feedback value pointer vector
   std::vector<double**> joint_vel_fb_ptrs_;
+  std::vector<double**> joint_accel_ptrs_;
   //!     Joint effort feedback value pointer vector
   std::vector<double**> joint_eff_fb_ptrs_;
 
