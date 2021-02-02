@@ -136,6 +136,15 @@ void HalHWInterface::init_hal(void (*funct)(void*, long))
     // return false; // FIXME
     return;
   }
+  **probe_signal_ptr_ = false; // Probe is off by default
+
+  if (!create_bit_pin(&probe_signal_active_low_ptr_, HAL_IN, "probe-signal-active-low"))
+  {
+    HAL_ROS_LOG_ERR(CNAME, "%s: Failed to initialize probe-signal-active-low pin", CNAME);
+    // return false; // FIXME
+    return;
+  }
+  **probe_signal_active_low_ptr_ = false; // Probe is active high by default
 
   if (!create_s32_pin(&probe_capture_ptr_, HAL_OUT, "probe-capture"))
   {
@@ -266,37 +275,37 @@ void HalHWInterface::read_with_time(ros::Duration& elapsed_time, ros::Time const
 
   // Read reset pin
   reset_controllers = **reset_ptr_;
-    {
-        // FIXME hard-code active low behavior until we can properly configure this
-        const bool probe_active_signal = !(**probe_signal_ptr_);
-        const bool last_probe_active_signal = probe_signal_;
-        // IMPORTANT update these first before updating the last probe signal value
-        if (!last_probe_active_signal && probe_active_signal) {
-            probe_transition_ = (int)machinekit_interfaces::ProbeTransitions::RISING;
-        } else if (last_probe_active_signal && !probe_active_signal) {
-            probe_transition_ = (int)machinekit_interfaces::ProbeTransitions::FALLING;
-        } else {
-            probe_transition_ = (int)machinekit_interfaces::ProbeTransitions::NONE;
-        }
+  {
+    // Probe signal internally is active high, converted at the pin level for active-low probes
+    const bool probe_active_signal = **probe_signal_ptr_ ^ **probe_signal_active_low_ptr_;
+    const bool last_probe_active_signal = probe_signal_;
 
-        int expected_transition = (int)machinekit_interfaces::ProbeHandle::transitionNeededForCapture((machinekit_interfaces::ProbeCaptureType)probe_request_capture_type_);
-        if (!probe_result_type_
-                && probe_request_capture_type_
-                && probe_transition_ == expected_transition) {
-            for (std::size_t joint_id = 0; joint_id < num_joints_; ++joint_id)
-            {
-              // Explicitly copy elements without re-allocating
-              probe_joint_position_[joint_id] = joint_position_[joint_id];
-              probe_joint_velocity_[joint_id] = joint_velocity_[joint_id];
-              probe_joint_effort_[joint_id] = joint_effort_[joint_id];
-            }
-            probe_result_type_ = probe_transition_;
-            probe_event_time_ = current_time;
-        }
-        // No overtravel support currently
-        probe_signal_ = probe_active_signal;
+    // IMPORTANT update these first before updating the last probe signal value
+    if (probe_active_signal ^ last_probe_active_signal) {
+      probe_transition_ = probe_active_signal ?
+            (int)machinekit_interfaces::ProbeTransitions::RISING :
+            (int)machinekit_interfaces::ProbeTransitions::FALLING;
+    } else {
+      probe_transition_ = (int)machinekit_interfaces::ProbeTransitions::NONE;
     }
+    probe_signal_ = probe_active_signal;
+  }
 
+    int expected_transition = (int)machinekit_interfaces::ProbeHandle::transitionNeededForCapture((machinekit_interfaces::ProbeCaptureType)probe_request_capture_type_);
+    if (!probe_result_type_
+        && probe_request_capture_type_
+        && probe_transition_ == expected_transition) {
+      for (std::size_t joint_id = 0; joint_id < num_joints_; ++joint_id)
+      {
+        // Explicitly copy elements without re-allocating
+        probe_joint_position_[joint_id] = joint_position_[joint_id];
+        probe_joint_velocity_[joint_id] = joint_velocity_[joint_id];
+        probe_joint_effort_[joint_id] = joint_effort_[joint_id];
+      }
+      probe_result_type_ = probe_transition_;
+      probe_event_time_ = current_time;
+    }
+    // No overtravel support currently
 }
 
 void HalHWInterface::write(ros::Duration& elapsed_time)

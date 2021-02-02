@@ -210,7 +210,10 @@ private:
 
   // TODO condense these with the preview member variables to remove the indirection / extra copy
   bool** reset_ptr_;  // HAL input pin for controller reset
+
   bool** probe_signal_ptr_;  // HAL input pin, probe signal
+  bool** probe_signal_active_low_ptr_;  // HAL input pin to indicate if probe is active high (default), or active low
+
   int** probe_transition_ptr_;  // HAL output pin for detected probe transition (reference)
   int** probe_capture_ptr_;  // HAL output pin for expected capture type (reference)
 
