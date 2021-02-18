@@ -52,6 +52,7 @@
 #include <trajectory_msgs/JointTrajectory.h>
 #include <stop_event_msgs/SetNextProbeMove.h>
 #include <stop_event_msgs/GetStopEventResult.h>
+#include <stop_event_msgs/GetJointTrajectoryErrorContext.h>
 
 // ros_controls
 #include <realtime_tools/realtime_server_goal_handle.h>
@@ -69,6 +70,7 @@ using machinekit_interfaces::ProbeTransitions;
 using machinekit_interfaces::ProbeState;
 using stop_event_msgs::SetNextProbeMoveRequest;
 using stop_event_msgs::SetNextProbeMoveResponse;
+using stop_event_msgs::GetJointTrajectoryErrorContextResponse;
 
 // Project
 #include <joint_trajectory_controller/joint_trajectory_controller.h>
@@ -77,6 +79,7 @@ namespace interruptible_joint_trajectory_controller
 {
 static const std::string PROBE_SERVICE_NAME{ "probe" };
 static const std::string PROBE_RESULT_SERVICE_NAME{ "probe_result" };
+static const std::string ERROR_CONTEXT_SERVICE_NAME{ "error_context" };
 
 struct ProbeSettings {
   int probe_request_capture_type;
@@ -133,6 +136,7 @@ protected:
      */
     bool handleProbeRequest(stop_event_msgs::SetNextProbeMoveRequest& request, stop_event_msgs::SetNextProbeMoveResponse& response);
     bool handleStopEventResultRequest(stop_event_msgs::GetStopEventResultRequest& request, stop_event_msgs::GetStopEventResultResponse& response);
+    bool handleJointTrajectoryErrorContextRequest(stop_event_msgs::GetJointTrajectoryErrorContextRequest& request, stop_event_msgs::GetJointTrajectoryErrorContextResponse& response);
 
     // Real-Time ONLY Functions (must be called within the context of an update)
     void abortActiveGoalWithError(RealtimeGoalHandlePtr &gh_ref, ProbeSettings const &settings, const ros::Time& time, int error_code, std::string const &&explanation); // Like preemptActiveGoal but marks it as failed
@@ -143,6 +147,7 @@ protected:
     // Services for controller trajectory behavior
     ros::ServiceServer probe_service_; //!< Declare success when probe trip occurs on the next send trajectory
     ros::ServiceServer probe_result_service_; //!< Request the result of a probe
+    ros::ServiceServer error_detail_service_; //!< Used to query verbose error data after a motion error has occurred
 
     std::vector<machinekit_interfaces::JointEventDataHandle> probe_joint_results_;
     machinekit_interfaces::ProbeHandle probe_handle;
@@ -283,6 +288,7 @@ bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::ini
     // Set up services to control probe behavior
     probe_service_ = controller_nh.advertiseService(PROBE_SERVICE_NAME, &InterruptibleJointTrajectoryController::handleProbeRequest, this);
     probe_result_service_ = controller_nh.advertiseService(PROBE_RESULT_SERVICE_NAME, &InterruptibleJointTrajectoryController::handleStopEventResultRequest, this);
+    error_detail_service_ = controller_nh.advertiseService(ERROR_CONTEXT_SERVICE_NAME, &InterruptibleJointTrajectoryController::handleJointTrajectoryErrorContextRequest, this);
     // success
     this->state_ = controller_interface::Controller<HardwareInterface>::ControllerState::INITIALIZED;
     return true;
@@ -458,7 +464,7 @@ checkReachedTrajectoryGoalProbe(int capture_type)
     {
         if (!stop_event_triggered_ && (capture_type == stop_event_msgs::SetNextProbeMoveRequest::PROBE_REQUIRE_RISING_EDGE ||
              capture_type == stop_event_msgs::SetNextProbeMoveRequest::PROBE_REQUIRE_FALLING_EDGE)) {
-          current_active_goal->preallocated_result_->error_code = -9;
+          current_active_goal->preallocated_result_->error_code = -10;
           current_active_goal->preallocated_result_->error_string = "Reached end of motion without probe contact";
           current_active_goal->setAborted(current_active_goal->preallocated_result_);
         } else {
@@ -505,6 +511,14 @@ bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::han
 }
 
 template <class SegmentImpl, class HardwareInterface>
+bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::handleJointTrajectoryErrorContextRequest(stop_event_msgs::GetJointTrajectoryErrorContextRequest& request, stop_event_msgs::GetJointTrajectoryErrorContextResponse& response)
+{
+    response.error_code = error_code_.get();
+    ROS_INFO_STREAM("Handling request for error details (current error code is " << response.error_code << ")");
+    return true;
+}
+
+template <class SegmentImpl, class HardwareInterface>
 bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
 updateTrajectoryCommand(const JointTrajectoryConstPtr& msg, RealtimeGoalHandlePtr gh, std::string* error_string)
 {
@@ -522,6 +536,7 @@ updateTrajectoryCommand(const JointTrajectoryConstPtr& msg, RealtimeGoalHandlePt
             *error_string = err_msg;
           }
           this->clearQueuedSettings();
+          error_code_.set(GetJointTrajectoryErrorContextResponse::PROBE_CONTACT_AT_START);
           return false;
         }
         default:

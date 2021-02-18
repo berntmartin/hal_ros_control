@@ -1,0 +1,16 @@
+---
+# Super-set of error codes reported by FollowJointTrajectory action
+# Manually maintained for now, but hopefully ROS2 has some way to do this more elegantly
+int32 error_code
+int32 SUCCESSFUL = 0
+int32 INVALID_GOAL = -1
+int32 INVALID_JOINTS = -2
+int32 OLD_HEADER_TIMESTAMP = -3
+int32 PATH_TOLERANCE_VIOLATED = -4
+int32 GOAL_TOLERANCE_VIOLATED = -5
+int32 PROBE_UNEXPECTED_RISING_EDGE = -6
+int32 PROBE_UNEXPECTED_FALLING_EDGE = -7
+int32 PROBE_CONTACT_AT_START = -8
+int32 PROBE_INVALID_STATE = -9
+int32 PROBE_REACHED_MOTION_END = -10
+

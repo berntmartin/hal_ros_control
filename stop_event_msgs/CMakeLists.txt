@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
   FILES
   GetStopEventResult.srv
+  GetJointTrajectoryErrorContext.srv
   SetNextProbeMove.srv
 )
 
