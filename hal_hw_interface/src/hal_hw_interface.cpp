@@ -81,8 +81,24 @@ void HalHWInterface::init_hal(void (*funct)(void*, long))
                                      &probe_result_type_,
                                      &probe_event_time_));
   registerInterface(&probe_interface_);
+  HAL_ROS_LOG_INFO(CNAME, "%s: Initialized probe / stop interfaces", CNAME);
 
-  HAL_ROS_LOG_INFO(CNAME, "%s: Initialized boilerplate", CNAME);
+  // Initialize PosVel interfaces for each joint
+  for (std::size_t joint_id = 0; joint_id < num_joints_; ++joint_id)
+  {
+    ROS_DEBUG_STREAM_NAMED(name_, "Setting up PosVel interface for joint name: " << joint_names_[joint_id]);
+
+    // Add command interfaces to joints
+    // TODO: decide based on transmissions?
+    hardware_interface::PosVelJointHandle joint_handle_posvel = hardware_interface::PosVelJointHandle(
+        joint_state_interface_.getHandle(joint_names_[joint_id]), &joint_position_command_[joint_id], &joint_velocity_command_[joint_id]);
+
+    pos_vel_joint_interface_.registerHandle(joint_handle_posvel);
+  }  // end for each joint
+
+  registerInterface(&pos_vel_joint_interface_);
+
+  HAL_ROS_LOG_INFO(CNAME, "%s: Initialized PosVel handles / interface", CNAME);
 
   // Initialize component
   comp_id_ = hal_init(CNAME);

@@ -38,6 +38,7 @@
 #include <machinekit_interfaces/probe_interface.h>
 #include <machinekit_interfaces/joint_event_interface.h>
 #include <machinekit_interfaces/generic_interface.h>
+#include <hardware_interface/posvel_command_interface.h>
 
 // HAL
 #include <hal.h>
@@ -178,6 +179,8 @@ protected:
   std::vector<double> probe_joint_position_;
   std::vector<double> probe_joint_velocity_;
   std::vector<double> probe_joint_effort_;
+  hardware_interface::PosVelJointInterface pos_vel_joint_interface_;
+
 
   machinekit_interfaces::ProbeInterface probe_interface_;
   machinekit_interfaces::JointEventDataInterface joint_event_data_interface_;
