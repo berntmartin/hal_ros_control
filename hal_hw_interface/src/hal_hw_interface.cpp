@@ -162,12 +162,21 @@ void HalHWInterface::init_hal(void (*funct)(void*, long))
   }
   **probe_signal_active_low_ptr_ = false; // Probe is active high by default
 
+  if (!create_bit_pin(&probe_out_ptr_, HAL_OUT, "probe-out"))
+  {
+    HAL_ROS_LOG_ERR(CNAME, "%s: Failed to initialize probe-out pin", CNAME);
+    // return false; // FIXME
+    return;
+  }
+  **probe_out_ptr_ = false; // Probe is off by default
+
   if (!create_s32_pin(&probe_capture_ptr_, HAL_OUT, "probe-capture"))
   {
     HAL_ROS_LOG_ERR(CNAME, "%s: Failed to initialize probe-capture pin", CNAME);
     // return false; // FIXME
     return;
   }
+
   if (!create_s32_pin(&probe_transition_ptr_, HAL_OUT, "probe-transition"))
   {
     HAL_ROS_LOG_ERR(CNAME, "%s: Failed to initialize probe-transition pin", CNAME);
@@ -354,6 +363,7 @@ void HalHWInterface::write(ros::Duration& elapsed_time)
   }
   **probe_capture_ptr_ = probe_request_capture_type_;
   **probe_transition_ptr_ = probe_transition_;
+  **probe_out_ptr_ = probe_signal_;
 
   // Export the error code pointer
   **error_code_ptr_ = error_code_;
