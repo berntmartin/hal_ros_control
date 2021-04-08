@@ -325,8 +325,6 @@ completeActiveGoal(RealtimeGoalHandlePtr &current_active_goal, ProbeSettings con
     // Cancels the currently active goal
     if (!stop_event_triggered_)
     {
-        // Not sure if this is necessary
-        error_code_.set(0);
         if (current_active_goal) {
             // Marks the current goal as canceled
             current_active_goal->preallocated_result_->error_code = 0;
