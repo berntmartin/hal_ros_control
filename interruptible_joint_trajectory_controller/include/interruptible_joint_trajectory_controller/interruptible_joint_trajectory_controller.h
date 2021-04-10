@@ -532,6 +532,9 @@ updateTrajectoryCommand(const JointTrajectoryConstPtr& msg, RealtimeGoalHandlePt
           const std::string err_msg("Can't start a motion or probe move with probe active in probing mode " + std::to_string(requested_capture));
           if (error_string) {
             *error_string = err_msg;
+          } else {
+            // Caller didn't provide a feedback mechanism, so complain directly to the console
+            ROS_ERROR_STREAM(err_msg);
           }
           this->clearQueuedSettings();
           error_code_.set(GetJointTrajectoryErrorContextResponse::PROBE_CONTACT_AT_START);
