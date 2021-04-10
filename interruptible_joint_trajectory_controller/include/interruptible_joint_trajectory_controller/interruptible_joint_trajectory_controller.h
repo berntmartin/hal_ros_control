@@ -153,6 +153,8 @@ protected:
     machinekit_interfaces::ProbeHandle probe_handle;
     machinekit_interfaces::RealtimeEventHandle stop_event;
     machinekit_interfaces::GenericInt32Handle error_code_;
+    int soft_err_threshold;
+    int soft_err_count; // Used to count "soft" errors that should only be reported if many happen at once
     bool stop_event_triggered_;
 };
 
@@ -289,6 +291,12 @@ bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::ini
     probe_service_ = controller_nh.advertiseService(PROBE_SERVICE_NAME, &InterruptibleJointTrajectoryController::handleProbeRequest, this);
     probe_result_service_ = controller_nh.advertiseService(PROBE_RESULT_SERVICE_NAME, &InterruptibleJointTrajectoryController::handleStopEventResultRequest, this);
     error_detail_service_ = controller_nh.advertiseService(ERROR_CONTEXT_SERVICE_NAME, &InterruptibleJointTrajectoryController::handleJointTrajectoryErrorContextRequest, this);
+    stop_event_triggered_ = false;
+
+    // KLUDGE soft error threshold so jogging with probe active doesn't spam the console
+    soft_err_threshold=16;
+    this->controller_nh_.getParam("soft_error_threshold", soft_err_threshold);
+    soft_err_count = -soft_err_threshold+1;
     // success
     this->state_ = controller_interface::Controller<HardwareInterface>::ControllerState::INITIALIZED;
     return true;
@@ -534,7 +542,12 @@ updateTrajectoryCommand(const JointTrajectoryConstPtr& msg, RealtimeGoalHandlePt
             *error_string = err_msg;
           } else {
             // Caller didn't provide a feedback mechanism, so complain directly to the console
-            ROS_ERROR_STREAM(err_msg);
+            (++soft_err_count)%=soft_err_threshold;
+            if (!soft_err_count) {
+              // KLUDGE avoid console spam by only publishing once we reach the threshold
+              // (since these errors usually come from continuous jogging, which tends to be a stream of updates rather than one-off commands)
+              ROS_ERROR_STREAM(err_msg);
+            }
           }
           this->clearQueuedSettings();
           error_code_.set(GetJointTrajectoryErrorContextResponse::PROBE_CONTACT_AT_START);
