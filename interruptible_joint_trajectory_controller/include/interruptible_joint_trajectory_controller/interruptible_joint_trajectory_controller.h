@@ -537,8 +537,8 @@ updateTrajectoryCommand(const JointTrajectoryConstPtr& msg, RealtimeGoalHandlePt
         case SetNextProbeMoveRequest::PROBE_OPTIONAL_RISING_EDGE:
         case SetNextProbeMoveRequest::PROBE_REQUIRE_RISING_EDGE:
         {
-          const std::string err_msg("Can't start a motion or probe move with probe active in probing mode " + std::to_string(requested_capture));
           if (error_string) {
+            const std::string err_msg("Can't start a motion or probe move with probe active in probing mode " + std::to_string(requested_capture));
             *error_string = err_msg;
           } else {
             // Caller didn't provide a feedback mechanism, so complain directly to the console
@@ -546,7 +546,8 @@ updateTrajectoryCommand(const JointTrajectoryConstPtr& msg, RealtimeGoalHandlePt
             if (!soft_err_count) {
               // KLUDGE avoid console spam by only publishing once we reach the threshold
               // (since these errors usually come from continuous jogging, which tends to be a stream of updates rather than one-off commands)
-              ROS_ERROR_STREAM(err_msg);
+              // Assume this is from jogging so we can give better feedback
+              ROS_ERROR_STREAM("Can't start a jog motion with probe active. Verify probe connection / polarity, click 'Jog Ignore Probe' to re-enable jogging, then carefully jog the probe to a safe position.");
             }
           }
           this->clearQueuedSettings();
