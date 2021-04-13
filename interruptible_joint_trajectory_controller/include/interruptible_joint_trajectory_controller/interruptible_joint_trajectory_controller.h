@@ -551,7 +551,7 @@ updateTrajectoryCommand(const JointTrajectoryConstPtr& msg, RealtimeGoalHandlePt
               ROS_ERROR_STREAM("Can't start a jog motion with probe active. Verify probe connection / polarity, click 'Jog Ignore Probe' to re-enable jogging, then carefully jog the probe to a safe position.");
             }
           }
-          this->clearQueuedSettings();
+          this->claimQueuedSettings();
           error_code_.set(GetJointTrajectoryErrorContextResponse::PROBE_CONTACT_AT_START);
           return false;
         }
