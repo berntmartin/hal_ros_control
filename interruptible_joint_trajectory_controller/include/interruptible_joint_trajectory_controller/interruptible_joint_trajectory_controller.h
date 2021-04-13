@@ -83,7 +83,6 @@ static const std::string ERROR_CONTEXT_SERVICE_NAME{ "error_context" };
 
 struct ProbeSettings {
   int probe_request_capture_type;
-  bool applied; //!< Starts false, then flipped to true when controller starts the trajectory
 };
 
 /**
@@ -139,10 +138,8 @@ protected:
     bool handleJointTrajectoryErrorContextRequest(stop_event_msgs::GetJointTrajectoryErrorContextRequest& request, stop_event_msgs::GetJointTrajectoryErrorContextResponse& response);
 
     // Real-Time ONLY Functions (must be called within the context of an update)
-    void abortActiveGoalWithError(RealtimeGoalHandlePtr &gh_ref, ProbeSettings const &settings, const ros::Time& time, int error_code); // Like preemptActiveGoal but marks it as failed
-    void completeActiveGoal(RealtimeGoalHandlePtr &gh_ref, ProbeSettings const &settings, const ros::Time &time); // Like preemptActiveGoal but for when an external goal state is reached (i.e. probing)
-    virtual void checkReachedTrajectoryGoal();
-    virtual void checkReachedTrajectoryGoalProbe(int capture_type);
+    virtual void checkReachedTrajectoryGoal(ros::Time const & uptime);
+    virtual void checkReachedTrajectoryGoalProbe(int capture_type, ros::Time const &uptime);
 
     // Services for controller trajectory behavior
     ros::ServiceServer probe_service_; //!< Declare success when probe trip occurs on the next send trajectory
@@ -155,7 +152,6 @@ protected:
     machinekit_interfaces::GenericInt32Handle error_code_;
     int jog_err_threshold;
     int jog_err_count; // Used to count "soft" errors that should only be reported if many happen at once
-    bool stop_event_triggered_;
 };
 
 } // namespace
@@ -291,7 +287,6 @@ bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::ini
     probe_service_ = controller_nh.advertiseService(PROBE_SERVICE_NAME, &InterruptibleJointTrajectoryController::handleProbeRequest, this);
     probe_result_service_ = controller_nh.advertiseService(PROBE_RESULT_SERVICE_NAME, &InterruptibleJointTrajectoryController::handleStopEventResultRequest, this);
     error_detail_service_ = controller_nh.advertiseService(ERROR_CONTEXT_SERVICE_NAME, &InterruptibleJointTrajectoryController::handleJointTrajectoryErrorContextRequest, this);
-    stop_event_triggered_ = false;
 
     // KLUDGE soft error threshold so jogging with probe active doesn't spam the console
     jog_err_threshold=32;
@@ -302,48 +297,6 @@ bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::ini
     return true;
 }
 
-
-template <class SegmentImpl, class HardwareInterface>
-inline void InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
-abortActiveGoalWithError(RealtimeGoalHandlePtr &current_active_goal, ProbeSettings const &settings, const ros::Time& time, int error_code)
-{
-    // Cancels the currently active goal
-    if (!stop_event_triggered_)
-    {
-        error_code_.set(error_code);
-        if (current_active_goal) {
-            // TODO standardize error codes
-            current_active_goal->preallocated_result_->error_code = error_code;
-            // TODO confirm realtime safety of this assignment (e.g. is the string reserved, or does this trigger an allocation?)
-            //current_active_goal->preallocated_result_->error_string = explanation;
-            current_active_goal->setAborted(current_active_goal->preallocated_result_);
-            // FIXME this fails noisily if the stop trajectory duration is 0.0
-            this->setHoldPositionWithSettings(settings, time, current_active_goal);
-        } else {
-            this->setHoldPositionWithSettings(settings, time);
-        }
-    }
-    stop_event_triggered_ = true;
-}
-
-template <class SegmentImpl, class HardwareInterface>
-inline void InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
-completeActiveGoal(RealtimeGoalHandlePtr &current_active_goal, ProbeSettings const &settings, const ros::Time &time)
-{
-    // Cancels the currently active goal
-    if (!stop_event_triggered_)
-    {
-        if (current_active_goal) {
-            // Marks the current goal as canceled
-            current_active_goal->preallocated_result_->error_code = 0;
-            current_active_goal->setSucceeded(current_active_goal->preallocated_result_);
-            this->setHoldPositionWithSettings(settings, time, current_active_goal);
-        } else {
-            this->setHoldPositionWithSettings(settings, time);
-        }
-    }
-    stop_event_triggered_ = true;
-}
 
 // WARNING do not early abort from this function, it must clean up probe capture mode
 template <class SegmentImpl, class HardwareInterface>
@@ -356,9 +309,18 @@ update(const ros::Time& time, const ros::Duration& period)
     JointTrajectoryControllerType::prepare_for_update(time, period, curr_traj_ptr, time_data);
     typename JointTrajectoryControllerType::RealtimeGoalHandlePtr current_active_goal(this->rt_active_goal_);
 
-    if (!curr_traj_ptr->motion_settings.applied) {
-        // A new trajectory has been loaded, so clear the previous error pin
+    // First, ensure that a new trajectory's probe settings are applied
+    ProbeSettings &settings = curr_traj_ptr->motion_settings;
+    if (!curr_traj_ptr->started) {
+        // Disregard any previously captured probe transitions (up to and including the current timestep)
+        // This means that probe transitions are not detected on the very first timestep
         error_code_.set(0);
+        probe_handle.startNewProbeCapture(settings.probe_request_capture_type);
+        probe_handle.acquireProbeTransition();
+        // Don't re-apply the settings now that the new trajectory is active
+        curr_traj_ptr->started = true;
+        // Since we're starting a new trajectory, the previous "stop" event is over
+        this->stop_event_triggered_ = false;
     }
 
     auto probe_transition = probe_handle.acquireProbeTransition();
@@ -369,13 +331,13 @@ update(const ros::Time& time, const ros::Duration& period)
         switch (probe_capture_type) {
         case stop_event_msgs::SetNextProbeMoveRequest::PROBE_REQUIRE_RISING_EDGE:
         case stop_event_msgs::SetNextProbeMoveRequest::PROBE_OPTIONAL_RISING_EDGE:
-            completeActiveGoal(current_active_goal, curr_traj_ptr->motion_settings, time_data.uptime);
+            this->completeActiveGoal(current_active_goal, time_data.uptime);
             break;
         case stop_event_msgs::SetNextProbeMoveRequest::PROBE_IGNORE_INPUT:
             break;
         default:
             // "RETRACT" is meant to retract off of a surface and continue moving, but should stop if it hits something else
-            abortActiveGoalWithError(current_active_goal, curr_traj_ptr->motion_settings, time_data.uptime, GetJointTrajectoryErrorContextResponse::PROBE_UNEXPECTED_RISING_EDGE);
+            this->abortActiveGoalWithError(current_active_goal, time_data.uptime, GetJointTrajectoryErrorContextResponse::PROBE_UNEXPECTED_RISING_EDGE);
             break;
         }
         break;
@@ -383,13 +345,13 @@ update(const ros::Time& time, const ros::Duration& period)
         switch (probe_capture_type) {
         case stop_event_msgs::SetNextProbeMoveRequest::PROBE_REQUIRE_FALLING_EDGE:
         case stop_event_msgs::SetNextProbeMoveRequest::PROBE_OPTIONAL_FALLING_EDGE:
-            completeActiveGoal(current_active_goal, curr_traj_ptr->motion_settings, time_data.uptime);
+            this->completeActiveGoal(current_active_goal, time_data.uptime);
             break;
         case stop_event_msgs::SetNextProbeMoveRequest::PROBE_RETRACT:
         case stop_event_msgs::SetNextProbeMoveRequest::PROBE_IGNORE_INPUT:
             break;
         default:
-            abortActiveGoalWithError(current_active_goal, curr_traj_ptr->motion_settings, time_data.uptime, GetJointTrajectoryErrorContextResponse::PROBE_UNEXPECTED_FALLING_EDGE);
+            this->abortActiveGoalWithError(current_active_goal, time_data.uptime, GetJointTrajectoryErrorContextResponse::PROBE_UNEXPECTED_FALLING_EDGE);
             break;
         }
         break;
@@ -405,31 +367,18 @@ update(const ros::Time& time, const ros::Duration& period)
                 break;
             case stop_event_msgs::SetNextProbeMoveRequest::PROBE_REQUIRE_RISING_EDGE:
             case stop_event_msgs::SetNextProbeMoveRequest::PROBE_OPTIONAL_RISING_EDGE:
-                if (stop_event_triggered_) {
-                    // Can't stop any harder...
-                    break;
-                }
             default: // Deliberate fallthrough
-                abortActiveGoalWithError(current_active_goal, curr_traj_ptr->motion_settings, time_data.uptime, GetJointTrajectoryErrorContextResponse::PROBE_CONTACT_AT_START);
+                this->abortActiveGoalWithError(current_active_goal, time_data.uptime, GetJointTrajectoryErrorContextResponse::PROBE_CONTACT_AT_START);
                 break;
             }
         }
         break;
     default:
-        abortActiveGoalWithError(current_active_goal, curr_traj_ptr->motion_settings, time_data.uptime, GetJointTrajectoryErrorContextResponse::PROBE_INVALID_STATE);
+        this->abortActiveGoalWithError(current_active_goal, time_data.uptime, GetJointTrajectoryErrorContextResponse::PROBE_INVALID_STATE);
         break;
     }
 
     // Finished reacting to probe events, begin to actually handle a trajectory update
-    // First, ensure that a new trajectory's probe settings are applied
-    ProbeSettings &settings = curr_traj_ptr->motion_settings;
-    if (!settings.applied) {
-        probe_handle.startNewProbeCapture(settings.probe_request_capture_type);
-        // Don't re-apply the settings now that the new trajectory is active
-        settings.applied = true;
-        // Since we're starting a new trajectory, the previous "stop" event is over
-        stop_event_triggered_ = false;
-    }
     JointTrajectoryControllerType::update_joint_trajectory(curr_traj_ptr->trajectory, time_data, period);
 }
 
@@ -449,35 +398,30 @@ onTrajectoryError(int error_code)
  */
 template <class SegmentImpl, class HardwareInterface>
 void InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
-checkReachedTrajectoryGoal()
+checkReachedTrajectoryGoal(const ros::Time & uptime)
 {
     int capture_type = probe_handle.getProbeCapture();
     if (capture_type) {
-        checkReachedTrajectoryGoalProbe(capture_type);
+        checkReachedTrajectoryGoalProbe(capture_type, uptime);
     } else {
         // Normal moves get forwarded to the stock goal check
-        JointTrajectoryControllerType::checkReachedTrajectoryGoal();
+        JointTrajectoryControllerType::checkReachedTrajectoryGoal(uptime);
     }
 }
 
 template <class SegmentImpl, class HardwareInterface>
 void InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
-checkReachedTrajectoryGoalProbe(int capture_type)
+checkReachedTrajectoryGoalProbe(int capture_type, const ros::Time & uptime)
 {
     // Check if we have reached the end of a
     RealtimeGoalHandlePtr current_active_goal(this->rt_active_goal_);
     if (current_active_goal && this->successful_joint_traj_.count() == this->getNumberOfJoints())
     {
-        if (!stop_event_triggered_ && (capture_type == stop_event_msgs::SetNextProbeMoveRequest::PROBE_REQUIRE_RISING_EDGE ||
-             capture_type == stop_event_msgs::SetNextProbeMoveRequest::PROBE_REQUIRE_FALLING_EDGE)) {
-          current_active_goal->preallocated_result_->error_code = -10;
-          current_active_goal->preallocated_result_->error_string = "Reached end of motion without probe contact";
-          current_active_goal->setAborted(current_active_goal->preallocated_result_);
+        if (capture_type == stop_event_msgs::SetNextProbeMoveRequest::PROBE_REQUIRE_RISING_EDGE ||
+             capture_type == stop_event_msgs::SetNextProbeMoveRequest::PROBE_REQUIRE_FALLING_EDGE) {
+             this->abortActiveGoalWithError(current_active_goal, uptime, GetJointTrajectoryErrorContextResponse::PROBE_REACHED_MOTION_END);
         } else {
-            // Declare success because we reached the end of the motion (or we've successfully stopped after a probe trip)
-            current_active_goal->preallocated_result_->error_code = control_msgs::FollowJointTrajectoryResult::SUCCESSFUL;
-            current_active_goal->setSucceeded(current_active_goal->preallocated_result_);
-            current_active_goal.reset(); // do not publish feedback
+             this->completeActiveGoal(current_active_goal, uptime);
         }
         this->rt_active_goal_.reset();
         // TODO pass uptime in here to plane a stop trajectory in case the goal has nonzero velocity?
