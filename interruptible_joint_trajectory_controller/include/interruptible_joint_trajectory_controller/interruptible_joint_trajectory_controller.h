@@ -375,7 +375,7 @@ update(const ros::Time& time, const ros::Duration& period)
             break;
         default:
             // "RETRACT" is meant to retract off of a surface and continue moving, but should stop if it hits something else
-            abortActiveGoalWithError(current_active_goal, curr_traj_ptr->motion_settings, time_data.uptime, -6);
+            abortActiveGoalWithError(current_active_goal, curr_traj_ptr->motion_settings, time_data.uptime, GetJointTrajectoryErrorContextResponse::PROBE_UNEXPECTED_RISING_EDGE);
             break;
         }
         break;
@@ -389,7 +389,7 @@ update(const ros::Time& time, const ros::Duration& period)
         case stop_event_msgs::SetNextProbeMoveRequest::PROBE_IGNORE_INPUT:
             break;
         default:
-            abortActiveGoalWithError(current_active_goal, curr_traj_ptr->motion_settings, time_data.uptime, -7);
+            abortActiveGoalWithError(current_active_goal, curr_traj_ptr->motion_settings, time_data.uptime, GetJointTrajectoryErrorContextResponse::PROBE_UNEXPECTED_FALLING_EDGE);
             break;
         }
         break;
@@ -410,13 +410,13 @@ update(const ros::Time& time, const ros::Duration& period)
                     break;
                 }
             default: // Deliberate fallthrough
-                abortActiveGoalWithError(current_active_goal, curr_traj_ptr->motion_settings, time_data.uptime, -8);
+                abortActiveGoalWithError(current_active_goal, curr_traj_ptr->motion_settings, time_data.uptime, GetJointTrajectoryErrorContextResponse::PROBE_CONTACT_AT_START);
                 break;
             }
         }
         break;
     default:
-        abortActiveGoalWithError(current_active_goal, curr_traj_ptr->motion_settings, time_data.uptime, -9);
+        abortActiveGoalWithError(current_active_goal, curr_traj_ptr->motion_settings, time_data.uptime, GetJointTrajectoryErrorContextResponse::PROBE_INVALID_STATE);
         break;
     }
 
