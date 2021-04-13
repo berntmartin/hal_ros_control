@@ -208,6 +208,14 @@ void HalHWInterface::init_hal(void (*funct)(void*, long))
 
   HAL_ROS_LOG_INFO(CNAME, "%s:  HAL component ready!", CNAME);
 
+  // Initialize miscellaneous members here
+  probe_signal_ = 0;
+  probe_result_type_ = 0;
+  probe_event_time_ = ros::Time(0);
+  probe_request_capture_type_ = 0;
+  probe_result_type_ = 0;
+  error_code_ = 0;
+
   // return true; // FIXME
 }  // init()
 
