@@ -153,8 +153,8 @@ protected:
     machinekit_interfaces::ProbeHandle probe_handle;
     machinekit_interfaces::RealtimeEventHandle stop_event;
     machinekit_interfaces::GenericInt32Handle error_code_;
-    int soft_err_threshold;
-    int soft_err_count; // Used to count "soft" errors that should only be reported if many happen at once
+    int jog_err_threshold;
+    int jog_err_count; // Used to count "soft" errors that should only be reported if many happen at once
     bool stop_event_triggered_;
 };
 
@@ -294,9 +294,9 @@ bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::ini
     stop_event_triggered_ = false;
 
     // KLUDGE soft error threshold so jogging with probe active doesn't spam the console
-    soft_err_threshold=32;
-    this->controller_nh_.getParam("soft_error_threshold", soft_err_threshold);
-    soft_err_count = -1;
+    jog_err_threshold=32;
+    this->controller_nh_.getParam("jog_error_threshold", jog_err_threshold);
+    jog_err_count = -1;
     // success
     this->state_ = controller_interface::Controller<HardwareInterface>::ControllerState::INITIALIZED;
     return true;
@@ -542,11 +542,12 @@ updateTrajectoryCommand(const JointTrajectoryConstPtr& msg, RealtimeGoalHandlePt
             *error_string = err_msg;
           } else {
             // Caller didn't provide a feedback mechanism, so complain directly to the console
-            (++soft_err_count)%=soft_err_threshold;
-            if (!soft_err_count) {
+            (++jog_err_count)%=jog_err_threshold;
+            if (!jog_err_count) {
               // KLUDGE avoid console spam by only publishing once we reach the threshold
-              // (since these errors usually come from continuous jogging, which tends to be a stream of updates rather than one-off commands)
-              // Assume this is from jogging so we can give better feedback
+              // (since these errors usually come from continuous jogging,
+              // which tends to be a stream of updates rather than one-off
+              // commands)
               ROS_ERROR_STREAM("Can't start a jog motion with probe active. Verify probe connection / polarity, click 'Jog Ignore Probe' to re-enable jogging, then carefully jog the probe to a safe position.");
             }
           }
@@ -561,7 +562,9 @@ updateTrajectoryCommand(const JointTrajectoryConstPtr& msg, RealtimeGoalHandlePt
     // NOTE: this clears the queued settings once they're accepted
     bool res = JointTrajectoryControllerType::updateTrajectoryCommand(msg, gh, error_string);
     if (res) { 
-        soft_err_count = 0;
+        // Sends a message immediately when the next jog error occurs, but then
+        // silences any additional errors until the threshold is reached.
+        jog_err_count = -1;
     }
     return res;
 }
