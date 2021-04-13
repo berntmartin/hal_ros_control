@@ -294,9 +294,9 @@ bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::ini
     stop_event_triggered_ = false;
 
     // KLUDGE soft error threshold so jogging with probe active doesn't spam the console
-    soft_err_threshold=16;
+    soft_err_threshold=32;
     this->controller_nh_.getParam("soft_error_threshold", soft_err_threshold);
-    soft_err_count = -soft_err_threshold+1;
+    soft_err_count = -1;
     // success
     this->state_ = controller_interface::Controller<HardwareInterface>::ControllerState::INITIALIZED;
     return true;
@@ -559,7 +559,11 @@ updateTrajectoryCommand(const JointTrajectoryConstPtr& msg, RealtimeGoalHandlePt
         }
     }
     // NOTE: this clears the queued settings once they're accepted
-    return JointTrajectoryControllerType::updateTrajectoryCommand(msg, gh, error_string);
+    bool res = JointTrajectoryControllerType::updateTrajectoryCommand(msg, gh, error_string);
+    if (res) { 
+        soft_err_count = 0;
+    }
+    return res;
 }
 
 
