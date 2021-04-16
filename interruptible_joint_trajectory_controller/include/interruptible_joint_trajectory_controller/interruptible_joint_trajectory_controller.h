@@ -320,7 +320,7 @@ update(const ros::Time& time, const ros::Duration& period)
         // Don't re-apply the settings now that the new trajectory is active
         curr_traj_ptr->started = true;
         // Since we're starting a new trajectory, the previous "stop" event is over
-        this->stop_event_triggered_ = false;
+        this->rt_stop_event_triggered_ = false;
     }
 
     auto probe_transition = probe_handle.acquireProbeTransition();
