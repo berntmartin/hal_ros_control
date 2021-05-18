@@ -43,7 +43,7 @@ HalHWInterface::HalHWInterface(ros::NodeHandle& nh, urdf::Model* urdf_model)
 {
 }
 
-void HalHWInterface::init_hal(void (*funct)(void*, long))
+int HalHWInterface::init_hal(void (*funct)(void*, long))
 {
   HAL_ROS_LOG_INFO(CNAME,
                    "%s: Initializing HAL hardware interface, description: %s",
@@ -117,8 +117,7 @@ void HalHWInterface::init_hal(void (*funct)(void*, long))
   if (comp_id_ < 0)
   {
     HAL_ROS_LOG_ERR(CNAME, "%s:  ERROR: Component creation ABORTED", CNAME);
-    // return false; // FIXME
-    return;
+    return false;
   }
 
   HAL_ROS_LOG_INFO(CNAME, "%s: Initialized HAL component", CNAME);
@@ -149,25 +148,22 @@ void HalHWInterface::init_hal(void (*funct)(void*, long))
     {
       HAL_ROS_LOG_ERR(CNAME, "%s: Failed to initialize joint %zu %s.%s", CNAME,
                       ix, CNAME, joint_names_[ix].c_str());
-      // return false; // FIXME
-      return;
+      return false;
     }
   }
 
-  // Initialize started pin
+  // Initialize reset pin
   if (!create_bit_pin(&reset_ptr_, HAL_IN, "reset"))
   {
     HAL_ROS_LOG_ERR(CNAME, "%s: Failed to initialize reset pin", CNAME);
-    // return false; // FIXME
-    return;
+    return false;
   }
 
   if (!create_bit_pin(&probe_signal_ptr_, HAL_IN, "probe-signal-in"))
   {
     HAL_ROS_LOG_ERR(CNAME, "%s: Failed to initialize probe-signal-in pin",
                     CNAME);
-    // return false; // FIXME
-    return;
+    return false;
   }
   **probe_signal_ptr_ = false;  // Probe is off by default
 
@@ -176,39 +172,34 @@ void HalHWInterface::init_hal(void (*funct)(void*, long))
   {
     HAL_ROS_LOG_ERR(
         CNAME, "%s: Failed to initialize probe-signal-active-low pin", CNAME);
-    // return false; // FIXME
-    return;
+    return false;
   }
   **probe_signal_active_low_ptr_ = false;  // Probe is active high by default
 
   if (!create_bit_pin(&probe_out_ptr_, HAL_OUT, "probe-out"))
   {
     HAL_ROS_LOG_ERR(CNAME, "%s: Failed to initialize probe-out pin", CNAME);
-    // return false; // FIXME
-    return;
+    return false;
   }
   **probe_out_ptr_ = false;  // Probe is off by default
 
   if (!create_s32_pin(&probe_capture_ptr_, HAL_OUT, "probe-capture"))
   {
     HAL_ROS_LOG_ERR(CNAME, "%s: Failed to initialize probe-capture pin", CNAME);
-    // return false; // FIXME
-    return;
+    return false;
   }
 
   if (!create_s32_pin(&probe_transition_ptr_, HAL_OUT, "probe-transition"))
   {
     HAL_ROS_LOG_ERR(CNAME, "%s: Failed to initialize probe-transition pin",
                     CNAME);
-    // return false; // FIXME
-    return;
+    return false;
   }
 
   if (!create_s32_pin(&error_code_ptr_, HAL_OUT, "error-code"))
   {
     HAL_ROS_LOG_ERR(CNAME, "%s: Failed to initialize error-code pin", CNAME);
-    // return false; // FIXME
-    return;
+    return false;
   }
 
   HAL_ROS_LOG_INFO(CNAME, "%s:  Initialized HAL pins", CNAME);
@@ -218,8 +209,7 @@ void HalHWInterface::init_hal(void (*funct)(void*, long))
   {
     HAL_ROS_LOG_INFO(CNAME, "%s: ERROR: hal_export_functf failed", CNAME);
     hal_exit(comp_id_);
-    // return false; // FIXME
-    return;
+    return false;
   }
   HAL_ROS_LOG_INFO(CNAME, "%s:  Exported HAL function", CNAME);
 
@@ -236,7 +226,7 @@ void HalHWInterface::init_hal(void (*funct)(void*, long))
   probe_result_type_ = 0;
   error_code_ = 0;
 
-  // return true; // FIXME
+  return true;
 }  // init()
 
 bool HalHWInterface::create_joint_float_pins(const std::size_t ix,
