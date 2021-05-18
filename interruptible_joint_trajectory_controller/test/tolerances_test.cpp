@@ -123,9 +123,9 @@ TEST(TolerancesTest, UpdateStateTolerances)
   StateTols default_state_tols(1.0, 2.0, 3.0);
 
   control_msgs::JointTolerance default_tol_msg;
-  default_tol_msg.name         = "foo_joint";
-  default_tol_msg.position     = 0.0;
-  default_tol_msg.velocity     = 0.0;
+  default_tol_msg.name = "foo_joint";
+  default_tol_msg.position = 0.0;
+  default_tol_msg.velocity = 0.0;
   default_tol_msg.acceleration = 0.0;
 
   // Zero tolerances: No-op
@@ -145,8 +145,8 @@ TEST(TolerancesTest, UpdateStateTolerances)
     control_msgs::JointTolerance tol_msg = default_tol_msg;
     tol_msg.position = -1.0;
     updateStateTolerances(tol_msg, state_tols);
-    EXPECT_EQ(0.0,                             state_tols.position);
-    EXPECT_EQ(default_state_tols.velocity,     state_tols.velocity);
+    EXPECT_EQ(0.0, state_tols.position);
+    EXPECT_EQ(default_state_tols.velocity, state_tols.velocity);
     EXPECT_EQ(default_state_tols.acceleration, state_tols.acceleration);
   }
   {
@@ -155,8 +155,8 @@ TEST(TolerancesTest, UpdateStateTolerances)
     control_msgs::JointTolerance tol_msg = default_tol_msg;
     tol_msg.velocity = -1.0;
     updateStateTolerances(tol_msg, state_tols);
-    EXPECT_EQ(default_state_tols.position,     state_tols.position);
-    EXPECT_EQ(0.0,                             state_tols.velocity);
+    EXPECT_EQ(default_state_tols.position, state_tols.position);
+    EXPECT_EQ(0.0, state_tols.velocity);
     EXPECT_EQ(default_state_tols.acceleration, state_tols.acceleration);
   }
   {
@@ -167,7 +167,7 @@ TEST(TolerancesTest, UpdateStateTolerances)
     updateStateTolerances(tol_msg, state_tols);
     EXPECT_EQ(default_state_tols.position, state_tols.position);
     EXPECT_EQ(default_state_tols.velocity, state_tols.velocity);
-    EXPECT_EQ(0.0,                         state_tols.acceleration);
+    EXPECT_EQ(0.0, state_tols.acceleration);
   }
 
   // Positive tolerances: Override existing values
@@ -177,8 +177,8 @@ TEST(TolerancesTest, UpdateStateTolerances)
     control_msgs::JointTolerance tol_msg = default_tol_msg;
     tol_msg.position = 0.5;
     updateStateTolerances(tol_msg, state_tols);
-    EXPECT_EQ(tol_msg.position,                state_tols.position);
-    EXPECT_EQ(default_state_tols.velocity,     state_tols.velocity);
+    EXPECT_EQ(tol_msg.position, state_tols.position);
+    EXPECT_EQ(default_state_tols.velocity, state_tols.velocity);
     EXPECT_EQ(default_state_tols.acceleration, state_tols.acceleration);
   }
   {
@@ -187,8 +187,8 @@ TEST(TolerancesTest, UpdateStateTolerances)
     control_msgs::JointTolerance tol_msg = default_tol_msg;
     tol_msg.velocity = 0.5;
     updateStateTolerances(tol_msg, state_tols);
-    EXPECT_EQ(default_state_tols.position,     state_tols.position);
-    EXPECT_EQ(tol_msg.velocity,                state_tols.velocity);
+    EXPECT_EQ(default_state_tols.position, state_tols.position);
+    EXPECT_EQ(tol_msg.velocity, state_tols.velocity);
     EXPECT_EQ(default_state_tols.acceleration, state_tols.acceleration);
   }
   {
@@ -199,7 +199,7 @@ TEST(TolerancesTest, UpdateStateTolerances)
     updateStateTolerances(tol_msg, state_tols);
     EXPECT_EQ(default_state_tols.position, state_tols.position);
     EXPECT_EQ(default_state_tols.velocity, state_tols.velocity);
-    EXPECT_EQ(tol_msg.acceleration,        state_tols.acceleration);
+    EXPECT_EQ(tol_msg.acceleration, state_tols.acceleration);
   }
 }
 
@@ -212,74 +212,94 @@ TEST(TolerancesTest, UpdateSegmentTolerances)
 
   // Tolerances to update from message data
   SegmentTolerances<double> ref_segment_tols(2);
-  ref_segment_tols.state_tolerance[0]      = StateTolerances<double>(1.0, 1.0, 1.0);
-  ref_segment_tols.state_tolerance[1]      = StateTolerances<double>(2.0, 2.0, 2.0);
-  ref_segment_tols.goal_state_tolerance[0] = StateTolerances<double>(3.0, 3.0, 3.0);
-  ref_segment_tols.goal_state_tolerance[1] = StateTolerances<double>(4.0, 4.0, 4.0);
-  ref_segment_tols.goal_time_tolerance     = 1.0;
+  ref_segment_tols.state_tolerance[0] = StateTolerances<double>(1.0, 1.0, 1.0);
+  ref_segment_tols.state_tolerance[1] = StateTolerances<double>(2.0, 2.0, 2.0);
+  ref_segment_tols.goal_state_tolerance[0] =
+      StateTolerances<double>(3.0, 3.0, 3.0);
+  ref_segment_tols.goal_state_tolerance[1] =
+      StateTolerances<double>(4.0, 4.0, 4.0);
+  ref_segment_tols.goal_time_tolerance = 1.0;
 
   // Message data
   control_msgs::JointTolerance invalid_tol_msg;
-  invalid_tol_msg.name         = "invalid_joint";
-  invalid_tol_msg.position     = -1.0;
-  invalid_tol_msg.velocity     = -1.0;
+  invalid_tol_msg.name = "invalid_joint";
+  invalid_tol_msg.position = -1.0;
+  invalid_tol_msg.velocity = -1.0;
   invalid_tol_msg.acceleration = -1.0;
 
   control_msgs::JointTolerance state_tol_msg;
-  state_tol_msg.name         = joint_names[0];
-  state_tol_msg.position     =  0.5;
-  state_tol_msg.velocity     =  0.0;
+  state_tol_msg.name = joint_names[0];
+  state_tol_msg.position = 0.5;
+  state_tol_msg.velocity = 0.0;
   state_tol_msg.acceleration = -1.0;
 
   control_msgs::JointTolerance goal_state_tol_msg;
-  goal_state_tol_msg.name         = joint_names[1];
-  goal_state_tol_msg.position     =  0.25;
-  goal_state_tol_msg.velocity     =  0.0;
+  goal_state_tol_msg.name = joint_names[1];
+  goal_state_tol_msg.position = 0.25;
+  goal_state_tol_msg.velocity = 0.0;
   goal_state_tol_msg.acceleration = -1.0;
 
   control_msgs::FollowJointTrajectoryGoal goal;
-  goal.path_tolerance.push_back(invalid_tol_msg); // Useless data that should be ignored
-  goal.path_tolerance.push_back(state_tol_msg);   // Only first joint has state tolerances
-  goal.path_tolerance.push_back(invalid_tol_msg); // Useless data that should be ignored
+  goal.path_tolerance.push_back(invalid_tol_msg);  // Useless data that should
+                                                   // be ignored
+  goal.path_tolerance.push_back(state_tol_msg);    // Only first joint has state
+                                                   // tolerances
+  goal.path_tolerance.push_back(invalid_tol_msg);  // Useless data that should
+                                                   // be ignored
 
-  goal.goal_tolerance.push_back(invalid_tol_msg);    // Useless data that should be ignored
-  goal.goal_tolerance.push_back(invalid_tol_msg);    // Useless data that should be ignored
-  goal.goal_tolerance.push_back(goal_state_tol_msg); // Only second joint has goal state tolerances
+  goal.goal_tolerance.push_back(invalid_tol_msg);  // Useless data that should
+                                                   // be ignored
+  goal.goal_tolerance.push_back(invalid_tol_msg);  // Useless data that should
+                                                   // be ignored
+  goal.goal_tolerance.push_back(goal_state_tol_msg);  // Only second joint has
+                                                      // goal state tolerances
 
-  goal.goal_time_tolerance = ros::Duration(0.0); // No-op
+  goal.goal_time_tolerance = ros::Duration(0.0);  // No-op
 
   // Update tolerances from message
   SegmentTolerances<double> segment_tols = ref_segment_tols;
   updateSegmentTolerances(goal, joint_names, segment_tols);
 
   // First joint should get only state tolerances updated
-  EXPECT_EQ(state_tol_msg.position,                       segment_tols.state_tolerance[0].position);     // Update
-  EXPECT_EQ(ref_segment_tols.state_tolerance[0].velocity, segment_tols.state_tolerance[0].velocity);     // No-op
-  EXPECT_EQ(0.0,                                          segment_tols.state_tolerance[0].acceleration); // Reset
+  EXPECT_EQ(state_tol_msg.position,
+            segment_tols.state_tolerance[0].position);  // Update
+  EXPECT_EQ(ref_segment_tols.state_tolerance[0].velocity,
+            segment_tols.state_tolerance[0].velocity);           // No-op
+  EXPECT_EQ(0.0, segment_tols.state_tolerance[0].acceleration);  // Reset
 
-  EXPECT_EQ(ref_segment_tols.state_tolerance[1].position,     segment_tols.state_tolerance[1].position);     // No-op
-  EXPECT_EQ(ref_segment_tols.state_tolerance[1].velocity,     segment_tols.state_tolerance[1].velocity);     // No-op
-  EXPECT_EQ(ref_segment_tols.state_tolerance[1].acceleration, segment_tols.state_tolerance[1].acceleration); // No-op
+  EXPECT_EQ(ref_segment_tols.state_tolerance[1].position,
+            segment_tols.state_tolerance[1].position);  // No-op
+  EXPECT_EQ(ref_segment_tols.state_tolerance[1].velocity,
+            segment_tols.state_tolerance[1].velocity);  // No-op
+  EXPECT_EQ(ref_segment_tols.state_tolerance[1].acceleration,
+            segment_tols.state_tolerance[1].acceleration);  // No-op
 
   // Second joint should get only goal state tolerances updated
-  EXPECT_EQ(ref_segment_tols.goal_state_tolerance[0].position,     segment_tols.goal_state_tolerance[0].position);     // No-op
-  EXPECT_EQ(ref_segment_tols.goal_state_tolerance[0].velocity,     segment_tols.goal_state_tolerance[0].velocity);     // No-op
-  EXPECT_EQ(ref_segment_tols.goal_state_tolerance[0].acceleration, segment_tols.goal_state_tolerance[0].acceleration); // No-op
+  EXPECT_EQ(ref_segment_tols.goal_state_tolerance[0].position,
+            segment_tols.goal_state_tolerance[0].position);  // No-op
+  EXPECT_EQ(ref_segment_tols.goal_state_tolerance[0].velocity,
+            segment_tols.goal_state_tolerance[0].velocity);  // No-op
+  EXPECT_EQ(ref_segment_tols.goal_state_tolerance[0].acceleration,
+            segment_tols.goal_state_tolerance[0].acceleration);  // No-op
 
-  EXPECT_EQ(goal_state_tol_msg.position,                       segment_tols.goal_state_tolerance[1].position);     // Update
-  EXPECT_EQ(ref_segment_tols.goal_state_tolerance[1].velocity, segment_tols.goal_state_tolerance[1].velocity);     // No-op
-  EXPECT_EQ(0.0,                                               segment_tols.goal_state_tolerance[1].acceleration); // Reset
+  EXPECT_EQ(goal_state_tol_msg.position,
+            segment_tols.goal_state_tolerance[1].position);  // Update
+  EXPECT_EQ(ref_segment_tols.goal_state_tolerance[1].velocity,
+            segment_tols.goal_state_tolerance[1].velocity);           // No-op
+  EXPECT_EQ(0.0, segment_tols.goal_state_tolerance[1].acceleration);  // Reset
 
   // Goal time constraint
-  EXPECT_EQ(ref_segment_tols.goal_time_tolerance, segment_tols.goal_time_tolerance); // No-op
+  EXPECT_EQ(ref_segment_tols.goal_time_tolerance,
+            segment_tols.goal_time_tolerance);  // No-op
 
   goal.goal_time_tolerance = ros::Duration(1.0);
   updateSegmentTolerances(goal, joint_names, segment_tols);
-  EXPECT_EQ(goal.goal_time_tolerance.toSec(), segment_tols.goal_time_tolerance);     // Update
+  EXPECT_EQ(goal.goal_time_tolerance.toSec(),
+            segment_tols.goal_time_tolerance);  // Update
 
   goal.goal_time_tolerance = ros::Duration(-1.0);
   updateSegmentTolerances(goal, joint_names, segment_tols);
-  EXPECT_EQ(0.0, segment_tols.goal_time_tolerance);                                  // Reset
+  EXPECT_EQ(0.0, segment_tols.goal_time_tolerance);  // Reset
 }
 
 TEST(TolerancesTest, getSegmentTolerances)
@@ -290,14 +310,15 @@ TEST(TolerancesTest, getSegmentTolerances)
   joint_names[0] = "foo_joint";
   joint_names[1] = "bar_joint";
 
-  SegmentTolerances<double> segment_tols = getSegmentTolerances<double>(nh, joint_names);
+  SegmentTolerances<double> segment_tols =
+      getSegmentTolerances<double>(nh, joint_names);
 
   EXPECT_EQ(joint_names.size(), segment_tols.state_tolerance.size());
   EXPECT_EQ(joint_names.size(), segment_tols.goal_state_tolerance.size());
 
   EXPECT_EQ(0.05, segment_tols.state_tolerance[0].position);
-  EXPECT_EQ(0.0,  segment_tols.state_tolerance[0].velocity);
-  EXPECT_EQ(0.0,  segment_tols.state_tolerance[0].acceleration);
+  EXPECT_EQ(0.0, segment_tols.state_tolerance[0].velocity);
+  EXPECT_EQ(0.0, segment_tols.state_tolerance[0].acceleration);
 
   EXPECT_EQ(0.0, segment_tols.state_tolerance[1].position);
   EXPECT_EQ(0.0, segment_tols.state_tolerance[1].velocity);
@@ -305,11 +326,11 @@ TEST(TolerancesTest, getSegmentTolerances)
 
   EXPECT_EQ(0.03, segment_tols.goal_state_tolerance[0].position);
   EXPECT_EQ(0.02, segment_tols.goal_state_tolerance[0].velocity);
-  EXPECT_EQ(0.0,  segment_tols.goal_state_tolerance[0].acceleration);
+  EXPECT_EQ(0.0, segment_tols.goal_state_tolerance[0].acceleration);
 
   EXPECT_EQ(0.01, segment_tols.goal_state_tolerance[1].position);
   EXPECT_EQ(0.02, segment_tols.goal_state_tolerance[1].velocity);
-  EXPECT_EQ(0.0,  segment_tols.goal_state_tolerance[1].acceleration);
+  EXPECT_EQ(0.0, segment_tols.goal_state_tolerance[1].acceleration);
 }
 
 int main(int argc, char** argv)

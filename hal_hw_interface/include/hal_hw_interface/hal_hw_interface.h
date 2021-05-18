@@ -52,37 +52,37 @@
 namespace hal_hw_interface
 {
 /**
-* \brief A `ros_control_boilerplate::GenericHWInterface` subclass for Machinekit
-* HAL
-*
-* The `hal_hw_interface::HalHWInterface` class implements the Machinekit HAL
-* realtime component:
-* 1. Initializes the component
-* 2. Implements the ros_control `read()` and `write()` functions
-* 3. Shuts down the component
-*
-* The HAL component name is `hw_hw_interface`, and has one `reset` pin and six
-* pins for each joint.
-*
-* The `reset` pin resets the ROS controllers whenever it is high.
-*
-* Joint names are read from configuration in [`ros_control_boilerplate`][1].
-* Six HAL pins are created for each joint:
-*
-* * Output pins connecting joint command from ROS into HAL
-*   * `<joint>.pos-cmd`, `<joint>.vel-cmd` and `<joint>.eff-cmd`
-* * Input pins connecting joint feedback from HAL back to ROS
-*   * `<joint>.pos-fb`, `<joint>.vel-fb` and `<joint>.eff-fb`
-*
-* The `read()` function reads joint feedback values from the `<joint>.*-fb` HAL
-* pins into the `hardware_interface::JointHandle`, and the `write()` function
-* writes joint command values back out to the `<joint>.*-cmd` HAL pins.
-*
-* This is plumbed into a ROS node in the `hal_hw_interface::HalRosControlLoop`
-* class.
-*
-* [1]: https://github.com/PickNikRobotics/ros_control_boilerplate
-*/
+ * \brief A `ros_control_boilerplate::GenericHWInterface` subclass for
+ * Machinekit HAL
+ *
+ * The `hal_hw_interface::HalHWInterface` class implements the Machinekit HAL
+ * realtime component:
+ * 1. Initializes the component
+ * 2. Implements the ros_control `read()` and `write()` functions
+ * 3. Shuts down the component
+ *
+ * The HAL component name is `hw_hw_interface`, and has one `reset` pin and six
+ * pins for each joint.
+ *
+ * The `reset` pin resets the ROS controllers whenever it is high.
+ *
+ * Joint names are read from configuration in [`ros_control_boilerplate`][1].
+ * Six HAL pins are created for each joint:
+ *
+ * * Output pins connecting joint command from ROS into HAL
+ *   * `<joint>.pos-cmd`, `<joint>.vel-cmd` and `<joint>.eff-cmd`
+ * * Input pins connecting joint feedback from HAL back to ROS
+ *   * `<joint>.pos-fb`, `<joint>.vel-fb` and `<joint>.eff-fb`
+ *
+ * The `read()` function reads joint feedback values from the `<joint>.*-fb` HAL
+ * pins into the `hardware_interface::JointHandle`, and the `write()` function
+ * writes joint command values back out to the `<joint>.*-cmd` HAL pins.
+ *
+ * This is plumbed into a ROS node in the `hal_hw_interface::HalRosControlLoop`
+ * class.
+ *
+ * [1]: https://github.com/PickNikRobotics/ros_control_boilerplate
+ */
 
 class HalHWInterface : public ros_control_boilerplate::GenericHWInterface
 {
@@ -133,8 +133,12 @@ public:
    * \brief Read the state from the robot hardware.
    * \param elapsed_time - period since last run
    */
-  void read(ros::Duration& elapsed_time) { read_with_time(elapsed_time, ros::Time::now(), ros::Duration(0));};
-  void read_with_time(ros::Duration& elapsed_time, ros::Time const &current_time, ros::Duration period);
+  void read(ros::Duration& elapsed_time)
+  {
+    read_with_time(elapsed_time, ros::Time::now(), ros::Duration(0));
+  };
+  void read_with_time(ros::Duration& elapsed_time,
+                      ros::Time const& current_time, ros::Duration period);
 
   /**
    * \brief Tell control loop whether controller reset is needed in update()
@@ -168,19 +172,20 @@ protected:
   /** indicates if the probe signal is active in HAL */
   int probe_signal_;
   int probe_transition_;
-  int controller_error_code_; // Reported from the controller, for triggering halscope captures
+  int controller_error_code_;  // Reported from the controller, for triggering
+                               // halscope captures
   ros::Time probe_event_time_;
 
   /** Are we expecting a probe trip? */
   int probe_request_capture_type_;
   int probe_result_type_;
 
-  std::vector<double> joint_velocity_prev_; // For calculating acceleration feedback
+  std::vector<double> joint_velocity_prev_;  // For calculating acceleration
+                                             // feedback
   std::vector<double> probe_joint_position_;
   std::vector<double> probe_joint_velocity_;
   std::vector<double> probe_joint_effort_;
   hardware_interface::PosVelJointInterface pos_vel_joint_interface_;
-
 
   machinekit_interfaces::ProbeInterface probe_interface_;
   machinekit_interfaces::JointEventDataInterface joint_event_data_interface_;
@@ -205,27 +210,32 @@ private:
   std::vector<double**> joint_eff_fb_ptrs_;
 
   //!     Probe Position result
-  std::vector<double**> probe_joint_result_ptrs_; // HAL output pins for probe result (reference)
-
+  std::vector<double**> probe_joint_result_ptrs_;  // HAL output pins for probe
+                                                   // result (reference)
 
   std::vector<double**> joint_ferror_ptrs_;
   // TODO hal pin for realtime safety input
 
-  // TODO condense these with the preview member variables to remove the indirection / extra copy
+  // TODO condense these with the preview member variables to remove the
+  // indirection / extra copy
   bool** reset_ptr_;  // HAL input pin for controller reset
 
-  bool** probe_signal_ptr_;  // HAL input pin, probe signal
-  bool** probe_signal_active_low_ptr_;  // HAL input pin to indicate if probe is active high (default), or active low
-  bool** probe_out_ptr_;  // HAL output pin with the detect probe signal (active high, so true always means probe in contact)
+  bool** probe_signal_ptr_;             // HAL input pin, probe signal
+  bool** probe_signal_active_low_ptr_;  // HAL input pin to indicate if probe is
+                                        // active high (default), or active low
+  bool** probe_out_ptr_;  // HAL output pin with the detect probe signal (active
+                          // high, so true always means probe in contact)
 
-  int** probe_transition_ptr_;  // HAL output pin for detected probe transition (reference)
-  int** probe_capture_ptr_;  // HAL output pin for expected capture type (reference)
+  int** probe_transition_ptr_;  // HAL output pin for detected probe transition
+                                // (reference)
+  int** probe_capture_ptr_;     // HAL output pin for expected capture type
+                                // (reference)
 
-  int error_code_; // Placeholder for controller to pass error-code value
+  int error_code_;        // Placeholder for controller to pass error-code value
   int** error_code_ptr_;  // HAL output pin for controller error state
 
 };  // HalHWInterface
 
-}  // hardware_interface
+}  // namespace hal_hw_interface
 
 #endif  // HAL_HW_INTERFACE_HAL_HW_INTERFACE_H

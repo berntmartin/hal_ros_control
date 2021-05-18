@@ -38,4 +38,3 @@ catkin_package(
   std_msgs
   trajectory_msgs
 )
-

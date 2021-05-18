@@ -33,7 +33,8 @@
 #include <hal_hw_interface/hal_ros_logging.h>
 #include <stop_event_msgs/SetNextProbeMove.h>
 
-static constexpr const char *VER_DESCRIPTION = "Probing development version 0.1";
+static constexpr const char* VER_DESCRIPTION = "Probing development version "
+                                               "0.1";
 
 namespace hal_hw_interface
 {
@@ -44,7 +45,9 @@ HalHWInterface::HalHWInterface(ros::NodeHandle& nh, urdf::Model* urdf_model)
 
 void HalHWInterface::init_hal(void (*funct)(void*, long))
 {
-  HAL_ROS_LOG_INFO(CNAME, "%s: Initializing HAL hardware interface, description: %s", CNAME, VER_DESCRIPTION);
+  HAL_ROS_LOG_INFO(CNAME,
+                   "%s: Initializing HAL hardware interface, description: %s",
+                   CNAME, VER_DESCRIPTION);
 
   // Register handles for joint position at probe trip
 
@@ -54,44 +57,53 @@ void HalHWInterface::init_hal(void (*funct)(void*, long))
   probe_joint_effort_.resize(num_joints_, 0.0);
   joint_velocity_prev_.resize(num_joints_, 0.0);
 
-  // Initialize interfaces for probe position (done deliberately before the init below since that's where the interfaces are registered)
+  // Initialize interfaces for probe position (done deliberately before the init
+  // below since that's where the interfaces are registered)
   for (std::size_t joint_id = 0; joint_id < num_joints_; ++joint_id)
   {
-    ROS_INFO_STREAM_NAMED(name_, "Setting up handle for probe position for " << joint_names_[joint_id]);
+    ROS_INFO_STREAM_NAMED(name_, "Setting up handle for probe position for "
+                                     << joint_names_[joint_id]);
 
     // Create joint state interface
-    joint_event_data_interface_.registerHandle(machinekit_interfaces::JointEventDataHandle(
-        joint_names_[joint_id]+"_probe", &(probe_joint_position_[joint_id]), &(probe_joint_velocity_[joint_id]), &(probe_joint_effort_[joint_id])));
+    joint_event_data_interface_.registerHandle(
+        machinekit_interfaces::JointEventDataHandle(
+            joint_names_[joint_id] + "_probe",
+            &(probe_joint_position_[joint_id]),
+            &(probe_joint_velocity_[joint_id]),
+            &(probe_joint_effort_[joint_id])));
   }  // end for each joint
   registerInterface(&joint_event_data_interface_);
 
-  generic_int32_interface_.registerHandle(machinekit_interfaces::GenericInt32Handle("controller_status", &error_code_));
+  generic_int32_interface_.registerHandle(
+      machinekit_interfaces::GenericInt32Handle("controller_status",
+                                                &error_code_));
   registerInterface(&generic_int32_interface_);
 
-  // Call base class init to set register interfaces and handles for joint state / command / limits
+  // Call base class init to set register interfaces and handles for joint state
+  // / command / limits
   ros_control_boilerplate::GenericHWInterface::init();
 
   // TODO look up the probe name in config instead of hard-coding it
   // TODO support multiple probes
   probe_interface_.registerHandle(machinekit_interfaces::ProbeHandle(
-                                     "probe",
-                                     &probe_request_capture_type_,
-                                     &probe_signal_,
-                                     &probe_transition_,
-                                     &probe_result_type_,
-                                     &probe_event_time_));
+      "probe", &probe_request_capture_type_, &probe_signal_, &probe_transition_,
+      &probe_result_type_, &probe_event_time_));
   registerInterface(&probe_interface_);
   HAL_ROS_LOG_INFO(CNAME, "%s: Initialized probe / stop interfaces", CNAME);
 
   // Initialize PosVel interfaces for each joint
   for (std::size_t joint_id = 0; joint_id < num_joints_; ++joint_id)
   {
-    ROS_DEBUG_STREAM_NAMED(name_, "Setting up PosVel interface for joint name: " << joint_names_[joint_id]);
+    ROS_DEBUG_STREAM_NAMED(name_, "Setting up PosVel interface for joint name: "
+                                      << joint_names_[joint_id]);
 
     // Add command interfaces to joints
     // TODO: decide based on transmissions?
-    hardware_interface::PosVelJointHandle joint_handle_posvel = hardware_interface::PosVelJointHandle(
-        joint_state_interface_.getHandle(joint_names_[joint_id]), &joint_position_command_[joint_id], &joint_velocity_command_[joint_id]);
+    hardware_interface::PosVelJointHandle joint_handle_posvel =
+        hardware_interface::PosVelJointHandle(
+            joint_state_interface_.getHandle(joint_names_[joint_id]),
+            &joint_position_command_[joint_id],
+            &joint_velocity_command_[joint_id]);
 
     pos_vel_joint_interface_.registerHandle(joint_handle_posvel);
   }  // end for each joint
@@ -118,13 +130,17 @@ void HalHWInterface::init_hal(void (*funct)(void*, long))
     HAL_ROS_LOG_INFO(CNAME, "%s: Init joint #%zu %s", CNAME, ix,
                      joint_names_[ix].c_str());
 
-    if (!create_joint_float_pins(ix, &joint_pos_cmd_ptrs_, HAL_OUT, "pos-"
-                                                                    "cmd") ||
-        !create_joint_float_pins(ix, &joint_vel_cmd_ptrs_, HAL_OUT, "vel-"
-                                                                    "cmd") ||
-        !create_joint_float_pins(ix, &joint_eff_cmd_ptrs_, HAL_OUT, "eff-"
-                                                                    "cmd") ||
-        !create_joint_float_pins(ix, &probe_joint_result_ptrs_, HAL_OUT, "probe-pos") ||
+    if (!create_joint_float_pins(ix, &joint_pos_cmd_ptrs_, HAL_OUT,
+                                 "pos-"
+                                 "cmd") ||
+        !create_joint_float_pins(ix, &joint_vel_cmd_ptrs_, HAL_OUT,
+                                 "vel-"
+                                 "cmd") ||
+        !create_joint_float_pins(ix, &joint_eff_cmd_ptrs_, HAL_OUT,
+                                 "eff-"
+                                 "cmd") ||
+        !create_joint_float_pins(ix, &probe_joint_result_ptrs_, HAL_OUT,
+                                 "probe-pos") ||
         !create_joint_float_pins(ix, &joint_ferror_ptrs_, HAL_OUT, "ferror") ||
         !create_joint_float_pins(ix, &joint_pos_fb_ptrs_, HAL_IN, "pos-fb") ||
         !create_joint_float_pins(ix, &joint_vel_fb_ptrs_, HAL_IN, "vel-fb") ||
@@ -148,19 +164,22 @@ void HalHWInterface::init_hal(void (*funct)(void*, long))
 
   if (!create_bit_pin(&probe_signal_ptr_, HAL_IN, "probe-signal-in"))
   {
-    HAL_ROS_LOG_ERR(CNAME, "%s: Failed to initialize probe-signal-in pin", CNAME);
+    HAL_ROS_LOG_ERR(CNAME, "%s: Failed to initialize probe-signal-in pin",
+                    CNAME);
     // return false; // FIXME
     return;
   }
-  **probe_signal_ptr_ = false; // Probe is off by default
+  **probe_signal_ptr_ = false;  // Probe is off by default
 
-  if (!create_bit_pin(&probe_signal_active_low_ptr_, HAL_IN, "probe-signal-active-low"))
+  if (!create_bit_pin(&probe_signal_active_low_ptr_, HAL_IN,
+                      "probe-signal-active-low"))
   {
-    HAL_ROS_LOG_ERR(CNAME, "%s: Failed to initialize probe-signal-active-low pin", CNAME);
+    HAL_ROS_LOG_ERR(
+        CNAME, "%s: Failed to initialize probe-signal-active-low pin", CNAME);
     // return false; // FIXME
     return;
   }
-  **probe_signal_active_low_ptr_ = false; // Probe is active high by default
+  **probe_signal_active_low_ptr_ = false;  // Probe is active high by default
 
   if (!create_bit_pin(&probe_out_ptr_, HAL_OUT, "probe-out"))
   {
@@ -168,7 +187,7 @@ void HalHWInterface::init_hal(void (*funct)(void*, long))
     // return false; // FIXME
     return;
   }
-  **probe_out_ptr_ = false; // Probe is off by default
+  **probe_out_ptr_ = false;  // Probe is off by default
 
   if (!create_s32_pin(&probe_capture_ptr_, HAL_OUT, "probe-capture"))
   {
@@ -179,7 +198,8 @@ void HalHWInterface::init_hal(void (*funct)(void*, long))
 
   if (!create_s32_pin(&probe_transition_ptr_, HAL_OUT, "probe-transition"))
   {
-    HAL_ROS_LOG_ERR(CNAME, "%s: Failed to initialize probe-transition pin", CNAME);
+    HAL_ROS_LOG_ERR(CNAME, "%s: Failed to initialize probe-transition pin",
+                    CNAME);
     // return false; // FIXME
     return;
   }
@@ -293,7 +313,9 @@ bool HalHWInterface::create_s32_pin(int*** ptr, hal_pin_dir_t dir,
   return true;
 }
 
-void HalHWInterface::read_with_time(ros::Duration& elapsed_time, ros::Time const &current_time, ros::Duration period)
+void HalHWInterface::read_with_time(ros::Duration& elapsed_time,
+                                    ros::Time const& current_time,
+                                    ros::Duration period)
 {
   // Copy HAL joint feedback pin values to controller joint states
   for (std::size_t joint_id = 0; joint_id < num_joints_; ++joint_id)
@@ -309,42 +331,51 @@ void HalHWInterface::read_with_time(ros::Duration& elapsed_time, ros::Time const
   // Read reset pin
   reset_controllers = **reset_ptr_;
   {
-    // Probe signal internally is active high, converted at the pin level for active-low probes
-    const bool probe_active_signal = **probe_signal_ptr_ ^ **probe_signal_active_low_ptr_;
+    // Probe signal internally is active high, converted at the pin level for
+    // active-low probes
+    const bool probe_active_signal =
+        **probe_signal_ptr_ ^ **probe_signal_active_low_ptr_;
     const bool last_probe_active_signal = probe_signal_;
 
     // IMPORTANT update these first before updating the last probe signal value
-    if (probe_active_signal ^ last_probe_active_signal) {
-      probe_transition_ = probe_active_signal ?
-            (int)machinekit_interfaces::ProbeTransitions::RISING :
-            (int)machinekit_interfaces::ProbeTransitions::FALLING;
-    } else {
+    if (probe_active_signal ^ last_probe_active_signal)
+    {
+      probe_transition_ =
+          probe_active_signal ?
+              (int)machinekit_interfaces::ProbeTransitions::RISING :
+              (int)machinekit_interfaces::ProbeTransitions::FALLING;
+    }
+    else
+    {
       probe_transition_ = (int)machinekit_interfaces::ProbeTransitions::NONE;
     }
     probe_signal_ = probe_active_signal;
   }
 
-    int expected_transition = (int)machinekit_interfaces::ProbeHandle::transitionNeededForCapture((machinekit_interfaces::ProbeCaptureType)probe_request_capture_type_);
-    if (!probe_result_type_
-        && probe_request_capture_type_
-        && probe_transition_ == expected_transition) {
-      for (std::size_t joint_id = 0; joint_id < num_joints_; ++joint_id)
-      {
-        // Explicitly copy elements without re-allocating
-        probe_joint_position_[joint_id] = joint_position_[joint_id];
-        probe_joint_velocity_[joint_id] = joint_velocity_[joint_id];
-        probe_joint_effort_[joint_id] = joint_effort_[joint_id];
-      }
-      probe_result_type_ = probe_transition_;
-      probe_event_time_ = current_time;
+  int expected_transition =
+      (int)machinekit_interfaces::ProbeHandle::transitionNeededForCapture(
+          (machinekit_interfaces::ProbeCaptureType)probe_request_capture_type_);
+  if (!probe_result_type_ && probe_request_capture_type_ &&
+      probe_transition_ == expected_transition)
+  {
+    for (std::size_t joint_id = 0; joint_id < num_joints_; ++joint_id)
+    {
+      // Explicitly copy elements without re-allocating
+      probe_joint_position_[joint_id] = joint_position_[joint_id];
+      probe_joint_velocity_[joint_id] = joint_velocity_[joint_id];
+      probe_joint_effort_[joint_id] = joint_effort_[joint_id];
     }
-    // No overtravel support currently
+    probe_result_type_ = probe_transition_;
+    probe_event_time_ = current_time;
+  }
+  // No overtravel support currently
 }
 
 void HalHWInterface::write(ros::Duration& elapsed_time)
 {
-    const static ros::Duration min_time(0,1);
-    double elapsed_time_seconds = std::max(elapsed_time.toSec(), min_time.toSec());
+  const static ros::Duration min_time(0, 1);
+  double elapsed_time_seconds =
+      std::max(elapsed_time.toSec(), min_time.toSec());
 
   // Enforce joint limits
   enforceLimits(elapsed_time);
@@ -352,18 +383,23 @@ void HalHWInterface::write(ros::Duration& elapsed_time)
   for (std::size_t joint_id = 0; joint_id < num_joints_; ++joint_id)
   {
     // How close did we come to the last commanded position after 1 update?
-    //**joint_ferror_ptrs_[joint_id] = (**joint_pos_cmd_ptrs_[joint_id] - joint_position_[joint_id]);
-    // How close are we to the CURRENT commanded position? This will be nonzero if feedforward isn't perfect
-    **joint_ferror_ptrs_[joint_id] = (joint_position_command_[joint_id] - joint_position_[joint_id]);
+    // **joint_ferror_ptrs_[joint_id] = (**joint_pos_cmd_ptrs_[joint_id] -
+    // joint_position_[joint_id]);
+    // How close are we to the CURRENT commanded position? This will be nonzero
+    // if feedforward isn't perfect
+    **joint_ferror_ptrs_[joint_id] =
+        (joint_position_command_[joint_id] - joint_position_[joint_id]);
     **joint_pos_cmd_ptrs_[joint_id] = joint_position_command_[joint_id];
     **joint_vel_cmd_ptrs_[joint_id] = joint_velocity_command_[joint_id];
     **joint_eff_cmd_ptrs_[joint_id] = joint_effort_command_[joint_id];
-      // In units / sec^2
-    **joint_accel_ptrs_[joint_id] = (joint_velocity_[joint_id] - joint_velocity_prev_[joint_id]) / elapsed_time_seconds;
-
+    // In units / sec^2
+    **joint_accel_ptrs_[joint_id] =
+        (joint_velocity_[joint_id] - joint_velocity_prev_[joint_id]) /
+        elapsed_time_seconds;
   }
 
-  if (probe_request_capture_type_ == probe_transition_) {
+  if (probe_request_capture_type_ == probe_transition_)
+  {
     for (std::size_t joint_id = 0; joint_id < num_joints_; ++joint_id)
     {
       **probe_joint_result_ptrs_[joint_id] = probe_joint_position_[joint_id];
@@ -398,4 +434,4 @@ void HalHWInterface::shutdown()
   }
 }
 
-}  // namespace
+}  // namespace hal_hw_interface

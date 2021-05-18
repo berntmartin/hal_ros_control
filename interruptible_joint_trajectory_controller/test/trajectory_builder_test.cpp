@@ -41,15 +41,19 @@
 namespace trajectory_builder_tests
 {
 using QuinticSplineSegment = trajectory_interface::QuinticSplineSegment<double>;
-using TrajectoryBuilder = joint_trajectory_controller::TrajectoryBuilder<QuinticSplineSegment>;
+using TrajectoryBuilder =
+    joint_trajectory_controller::TrajectoryBuilder<QuinticSplineSegment>;
 
-using GoalHandle = actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction>::GoalHandle;
-using RealTimeServerGoalHandle = realtime_tools::RealtimeServerGoalHandle<control_msgs::FollowJointTrajectoryAction>;
+using GoalHandle = actionlib::ActionServer<
+    control_msgs::FollowJointTrajectoryAction>::GoalHandle;
+using RealTimeServerGoalHandle = realtime_tools::RealtimeServerGoalHandle<
+    control_msgs::FollowJointTrajectoryAction>;
 
 class FakeTrajectoryBuilder : public TrajectoryBuilder
 {
 private:
-  using Segment = joint_trajectory_controller::JointTrajectorySegment<QuinticSplineSegment>;
+  using Segment =
+      joint_trajectory_controller::JointTrajectorySegment<QuinticSplineSegment>;
   using TrajectoryPerJoint = std::vector<Segment>;
   using Trajectory = std::vector<TrajectoryPerJoint>;
 
@@ -58,6 +62,7 @@ private:
   FRIEND_TEST(TrajectoryBuilderTest, testSetGoalHandle);
   FRIEND_TEST(TrajectoryBuilderTest, testResetGoalHandle);
   FRIEND_TEST(TrajectoryBuilderTest, testDefaultGoalHandle);
+
 protected:
   /**
    * @brief Override pure virtual method. Not included in the tests.
@@ -71,39 +76,50 @@ protected:
 TEST(TrajectoryBuilderTest, testSetStartTime)
 {
   FakeTrajectoryBuilder builder;
-  EXPECT_FALSE(builder.getStartTime().is_initialized()) << "Obtained start time despite not set.";
+  EXPECT_FALSE(builder.getStartTime().is_initialized()) << "Obtained start "
+                                                           "time despite not "
+                                                           "set.";
 
-  const double start_time {0.1};
+  const double start_time{ 0.1 };
   builder.setStartTime(start_time);
 
-  EXPECT_EQ(builder.getStartTime().get(), start_time) << "Start time was not set/returned correctly.";
+  EXPECT_EQ(builder.getStartTime().get(), start_time) << "Start time was not "
+                                                         "set/returned "
+                                                         "correctly.";
 }
 
 TEST(TrajectoryBuilderTest, testResetStartTime)
 {
   FakeTrajectoryBuilder builder;
 
-  const double start_time {0.1};
+  const double start_time{ 0.1 };
   builder.setStartTime(start_time);
 
   builder.reset();
-  EXPECT_FALSE(builder.getStartTime().is_initialized()) << "Obtained start time despite reset.";
+  EXPECT_FALSE(builder.getStartTime().is_initialized()) << "Obtained start "
+                                                           "time despite "
+                                                           "reset.";
 }
 
 TEST(TrajectoryBuilderTest, testSetGoalHandle)
 {
   FakeTrajectoryBuilder builder;
 
-  EXPECT_FALSE(builder.createGoalHandlePtr()) << "Obtained goal handle despite not set.";
+  EXPECT_FALSE(builder.createGoalHandlePtr()) << "Obtained goal handle despite "
+                                                 "not set.";
 
   GoalHandle gh;
-  boost::shared_ptr<RealTimeServerGoalHandle> rt_goal_handle = boost::make_shared<RealTimeServerGoalHandle>(gh);
+  boost::shared_ptr<RealTimeServerGoalHandle> rt_goal_handle =
+      boost::make_shared<RealTimeServerGoalHandle>(gh);
   builder.setGoalHandle(rt_goal_handle);
 
-  EXPECT_EQ(rt_goal_handle.use_count(), 1) << "Builder should only store a reference on GoalHandlePtr.";
+  EXPECT_EQ(rt_goal_handle.use_count(), 1) << "Builder should only store a "
+                                              "reference on GoalHandlePtr.";
 
   auto gh_return = builder.createGoalHandlePtr();
-  EXPECT_EQ(rt_goal_handle.get(), gh_return.get()) << "Goal handle pointer was not set/returned correctly.";
+  EXPECT_EQ(rt_goal_handle.get(), gh_return.get()) << "Goal handle pointer was "
+                                                      "not set/returned "
+                                                      "correctly.";
 }
 
 TEST(TrajectoryBuilderTest, testResetGoalHandle)
@@ -111,17 +127,21 @@ TEST(TrajectoryBuilderTest, testResetGoalHandle)
   FakeTrajectoryBuilder builder;
 
   GoalHandle gh;
-  boost::shared_ptr<RealTimeServerGoalHandle> rt_goal_handle = boost::make_shared<RealTimeServerGoalHandle>(gh);
+  boost::shared_ptr<RealTimeServerGoalHandle> rt_goal_handle =
+      boost::make_shared<RealTimeServerGoalHandle>(gh);
   builder.setGoalHandle(rt_goal_handle);
 
   builder.reset();
-  EXPECT_FALSE(builder.createGoalHandlePtr()) << "Obtained goal handle despite reset.";
+  EXPECT_FALSE(builder.createGoalHandlePtr()) << "Obtained goal handle despite "
+                                                 "reset.";
 }
 
 TEST(TrajectoryBuilderTest, testDefaultGoalHandle)
 {
   FakeTrajectoryBuilder builder;
-  EXPECT_FALSE(builder.createDefaultGoalHandle()) << "Default goal handle pointer is expected to be empty";
+  EXPECT_FALSE(builder.createDefaultGoalHandle()) << "Default goal handle "
+                                                     "pointer is expected to "
+                                                     "be empty";
 }
 
 }  // namespace trajectory_builder_tests

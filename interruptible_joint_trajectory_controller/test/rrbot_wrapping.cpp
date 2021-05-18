@@ -25,7 +25,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //////////////////////////////////////////////////////////////////////////////
 
-// NOTE: The contents of this file have been taken largely from the ros_control wiki tutorials
+// NOTE: The contents of this file have been taken largely from the ros_control
+// wiki tutorials
 
 // ROS
 #include <ros/ros.h>
@@ -47,38 +48,55 @@ public:
   RRbotWrapping()
   {
     // Intialize raw data
-    pos_[0] = M_PI - 0.1; pos_[1] = -M_PI + 0.1;
-    vel_[0] = 0.0; vel_[1] = 0.0;
-    eff_[0] = 0.0; eff_[1] = 0.0;
-    cmd_[0] = pos_[0]; cmd_[1] = pos_[1];  // Command must match position
+    pos_[0] = M_PI - 0.1;
+    pos_[1] = -M_PI + 0.1;
+    vel_[0] = 0.0;
+    vel_[1] = 0.0;
+    eff_[0] = 0.0;
+    eff_[1] = 0.0;
+    cmd_[0] = pos_[0];
+    cmd_[1] = pos_[1];  // Command must match position
 
     // Connect and register the joint state interface
-    hardware_interface::JointStateHandle state_handle_1("joint1", &pos_[0], &vel_[0], &eff_[0]);
+    hardware_interface::JointStateHandle state_handle_1("joint1", &pos_[0],
+                                                        &vel_[0], &eff_[0]);
     jnt_state_interface_.registerHandle(state_handle_1);
 
-    hardware_interface::JointStateHandle state_handle_2("joint2", &pos_[1], &vel_[1], &eff_[1]);
+    hardware_interface::JointStateHandle state_handle_2("joint2", &pos_[1],
+                                                        &vel_[1], &eff_[1]);
     jnt_state_interface_.registerHandle(state_handle_2);
 
     registerInterface(&jnt_state_interface_);
 
     // Connect and register the joint position interface
-    hardware_interface::JointHandle pos_handle_1(jnt_state_interface_.getHandle("joint1"), &cmd_[0]);
+    hardware_interface::JointHandle pos_handle_1(
+        jnt_state_interface_.getHandle("joint1"), &cmd_[0]);
     jnt_vel_interface_.registerHandle(pos_handle_1);
 
-    hardware_interface::JointHandle pos_handle_2(jnt_state_interface_.getHandle("joint2"), &cmd_[1]);
+    hardware_interface::JointHandle pos_handle_2(
+        jnt_state_interface_.getHandle("joint2"), &cmd_[1]);
     jnt_vel_interface_.registerHandle(pos_handle_2);
 
     registerInterface(&jnt_vel_interface_);
 
     // Smoothing subscriber
-    smoothing_sub_ = ros::NodeHandle().subscribe("smoothing", 1, &RRbotWrapping::smoothingCB, this);
+    smoothing_sub_ = ros::NodeHandle().subscribe(
+        "smoothing", 1, &RRbotWrapping::smoothingCB, this);
     smoothing_.initRT(0.0);
   }
 
-  ros::Time getTime() const {return ros::Time::now();}
-  ros::Duration getPeriod() const {return ros::Duration(0.01);}
+  ros::Time getTime() const
+  {
+    return ros::Time::now();
+  }
+  ros::Duration getPeriod() const
+  {
+    return ros::Duration(0.01);
+  }
 
-  void read() {}
+  void read()
+  {
+  }
 
   void write()
   {
@@ -104,12 +122,15 @@ private:
   double eff_[2];
 
   realtime_tools::RealtimeBuffer<double> smoothing_;
-  void smoothingCB(const std_msgs::Float64& smoothing) {smoothing_.writeFromNonRT(smoothing.data);}
+  void smoothingCB(const std_msgs::Float64& smoothing)
+  {
+    smoothing_.writeFromNonRT(smoothing.data);
+  }
 
   ros::Subscriber smoothing_sub_;
 };
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "rrbot_wrapping");
   ros::NodeHandle nh;

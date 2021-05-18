@@ -7,15 +7,24 @@
 
 namespace machinekit_interfaces
 {
+// Thin wrappers around joint state just to avoid confusing the rest of the
+// system (normal joint handles represent actual joints in the URDF)
 
-// Thin wrappers around joint state just to avoid confusing the rest of the system (normal joint handles represent actual joints in the URDF)
-
-class JointEventDataHandle : public hardware_interface::JointStateHandle {
+class JointEventDataHandle : public hardware_interface::JointStateHandle
+{
 public:
   JointEventDataHandle() = default;
-  JointEventDataHandle(const std::string& name, const double* pos, const double* vel, const double* eff) : JointStateHandle(name, pos, vel, eff) {}
+  JointEventDataHandle(const std::string& name, const double* pos,
+                       const double* vel, const double* eff)
+    : JointStateHandle(name, pos, vel, eff)
+  {
+  }
 };
-class JointEventDataInterface : public hardware_interface::HardwareResourceManager<JointEventDataHandle, hardware_interface::ClaimResources> {};
+class JointEventDataInterface
+  : public hardware_interface::HardwareResourceManager<
+        JointEventDataHandle, hardware_interface::ClaimResources>
+{
+};
 
-}
-#endif // JOINT_EVENT_DATA_INTERFACE_H
+}  // namespace machinekit_interfaces
+#endif  // JOINT_EVENT_DATA_INTERFACE_H

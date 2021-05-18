@@ -10,5 +10,3 @@ constraints:
   baz_joint: # Not part of joints we're looking for
     trajectory: 1.0
     goal:       2.0
-
-

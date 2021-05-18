@@ -36,8 +36,8 @@
 
 using namespace joint_trajectory_controller;
 using namespace trajectory_msgs;
-using std::vector;
 using std::string;
+using std::vector;
 
 // Floating-point value comparison threshold
 const double EPS = 1e-9;
@@ -65,8 +65,7 @@ TEST(StartTimeTest, StartTime)
 class TrajectoryInterfaceRosTest : public ::testing::Test
 {
 public:
-  TrajectoryInterfaceRosTest()
-    : points(3)
+  TrajectoryInterfaceRosTest() : points(3)
   {
     points[0].positions.resize(1, 2.0);
     points[0].velocities.resize(1, 0.0);
@@ -114,7 +113,8 @@ TEST_F(TrajectoryInterfaceRosTest, IsValid)
     msg.points.front().positions.push_back(0.0);
     EXPECT_FALSE(isValid(msg));
 
-    msg.points.front().positions.clear(); // Empty container is not a size mismatch
+    msg.points.front().positions.clear();  // Empty container is not a size
+                                           // mismatch
     EXPECT_TRUE(isValid(msg));
   }
 
@@ -124,7 +124,8 @@ TEST_F(TrajectoryInterfaceRosTest, IsValid)
     msg.points.front().velocities.push_back(0.0);
     EXPECT_FALSE(isValid(msg));
 
-    msg.points.front().velocities.clear(); // Empty container is not a size mismatch
+    msg.points.front().velocities.clear();  // Empty container is not a size
+                                            // mismatch
     EXPECT_TRUE(isValid(msg));
   }
 
@@ -134,7 +135,8 @@ TEST_F(TrajectoryInterfaceRosTest, IsValid)
     msg.points.front().accelerations.push_back(0.0);
     EXPECT_FALSE(isValid(msg));
 
-    msg.points.front().accelerations.clear(); // Empty container is not a size mismatch
+    msg.points.front().accelerations.clear();  // Empty container is not a size
+                                               // mismatch
     EXPECT_TRUE(isValid(msg));
   }
 
@@ -164,7 +166,8 @@ TEST_F(TrajectoryInterfaceRosTest, IsTimeStrictlyIncreasing)
     EXPECT_TRUE(isTimeStrictlyIncreasing(trajectory_msg));
   }
 
-  // Multi-waypoint tajectory with monotonically increasing (non-decreasing) times
+  // Multi-waypoint tajectory with monotonically increasing (non-decreasing)
+  // times
   {
     JointTrajectory msg;
     msg = trajectory_msg;
@@ -200,33 +203,44 @@ TEST_F(TrajectoryInterfaceRosTest, FindPoint)
 
   // Between the first and second points
   {
-    const ros::Time time = msg_start_time +
-    ros::Duration((msg_points.begin()->time_from_start + (++msg_points.begin())->time_from_start).toSec() / 2.0);
+    const ros::Time time =
+        msg_start_time + ros::Duration((msg_points.begin()->time_from_start +
+                                        (++msg_points.begin())->time_from_start)
+                                           .toSec() /
+                                       2.0);
     EXPECT_EQ(msg_points.begin(), findPoint(trajectory_msg, time));
   }
 
   // Second point
   {
-    const ros::Time time = msg_start_time + (++msg_points.begin())->time_from_start;
+    const ros::Time time =
+        msg_start_time + (++msg_points.begin())->time_from_start;
     EXPECT_EQ(++msg_points.begin(), findPoint(trajectory_msg, time));
   }
 
   // Between the second and third points
   {
-    const ros::Time time = msg_start_time +
-    ros::Duration(((++msg_points.begin())->time_from_start + (--msg_points.end())->time_from_start).toSec() / 2.0);
+    const ros::Time time =
+        msg_start_time +
+        ros::Duration(((++msg_points.begin())->time_from_start +
+                       (--msg_points.end())->time_from_start)
+                          .toSec() /
+                      2.0);
     EXPECT_EQ(++msg_points.begin(), findPoint(trajectory_msg, time));
   }
 
   // Last point
   {
-    const ros::Time time = msg_start_time + (--msg_points.end())->time_from_start;
+    const ros::Time time =
+        msg_start_time + (--msg_points.end())->time_from_start;
     EXPECT_EQ(--msg_points.end(), findPoint(trajectory_msg, time));
   }
 
   // After the last point
   {
-    const ros::Time time = msg_start_time + (--msg_points.end())->time_from_start + ros::Duration(1.0);
+    const ros::Time time = msg_start_time +
+                           (--msg_points.end())->time_from_start +
+                           ros::Duration(1.0);
     EXPECT_EQ(--msg_points.end(), findPoint(trajectory_msg, time));
   }
 }
@@ -236,4 +250,3 @@ int main(int argc, char** argv)
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
-

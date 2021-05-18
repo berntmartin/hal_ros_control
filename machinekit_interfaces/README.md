@@ -8,21 +8,21 @@ states from the robot's resources (joints, sensors, actuators).
 A list of available hardware interfaces (provided via the HardwareResourceManager)
 as of this writing are:
 
-- [JointCommandInterface](include/hardware_interface/joint_command_interface.h): 
+- [JointCommandInterface](include/hardware_interface/joint_command_interface.h):
   hardware interface to support commanding and reading the state of an array of
   joints. Note that these commands can have any semantic meaning as long as each
-  can be represented by a single double, they are not necessarily effort commands. 
+  can be represented by a single double, they are not necessarily effort commands.
   To specify a meaning to this command, see the derived classes:
-  - [EffortJointInterface](https://github.com/ros-controls/ros_control/blob/c6ee2451cf919307b7c1dbc75b32bec7d1b52d23/hardware_interface/include/hardware_interface/joint_command_interface.h#L82): 
+  - [EffortJointInterface](https://github.com/ros-controls/ros_control/blob/c6ee2451cf919307b7c1dbc75b32bec7d1b52d23/hardware_interface/include/hardware_interface/joint_command_interface.h#L82):
     for commanding and reading effort-based joints.
-  - [VelocityJointInterface](https://github.com/ros-controls/ros_control/blob/c6ee2451cf919307b7c1dbc75b32bec7d1b52d23/hardware_interface/include/hardware_interface/joint_command_interface.h#L85): 
+  - [VelocityJointInterface](https://github.com/ros-controls/ros_control/blob/c6ee2451cf919307b7c1dbc75b32bec7d1b52d23/hardware_interface/include/hardware_interface/joint_command_interface.h#L85):
     for commanding and reading velocity-based joints.
-  - [PositionJointInterface](https://github.com/ros-controls/ros_control/blob/c6ee2451cf919307b7c1dbc75b32bec7d1b52d23/hardware_interface/include/hardware_interface/joint_command_interface.h#L88): 
+  - [PositionJointInterface](https://github.com/ros-controls/ros_control/blob/c6ee2451cf919307b7c1dbc75b32bec7d1b52d23/hardware_interface/include/hardware_interface/joint_command_interface.h#L88):
     for commanding and reading position-based joints.
-- [JointStateInterfaces](include/hardware_interface/joint_state_interface.h): 
-  hardware interface to support reading the state of an array of named joints, 
+- [JointStateInterfaces](include/hardware_interface/joint_state_interface.h):
+  hardware interface to support reading the state of an array of named joints,
   each of which has some position, velocity, and effort (force or torque).
-- [ActuatorStateInterfaces](include/hardware_interface/actuator_state_interface.h): 
+- [ActuatorStateInterfaces](include/hardware_interface/actuator_state_interface.h):
   hardware interface to support reading the state of an array of named actuators,
   each of which has some position, velocity, and effort (force or torque).
 - [ActuatorCommandInterfaces](include/hardware_interface/actuator_command_interface.h)

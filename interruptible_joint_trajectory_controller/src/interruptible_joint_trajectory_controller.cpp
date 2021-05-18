@@ -35,61 +35,81 @@
 
 namespace position_controllers
 {
-  /**
-   * \brief Joint trajectory controller that represents trajectory segments as <b>quintic splines</b> and sends
-   * commands to a \b position interface.
-   */
-  typedef interruptible_joint_trajectory_controller::InterruptibleJointTrajectoryController<trajectory_interface::QuinticSplineSegment<double>,
-                                                                 hardware_interface::PositionJointInterface>
-          InterruptibleJointTrajectoryController;
-}
+/**
+ * \brief Joint trajectory controller that represents trajectory segments as
+ * <b>quintic splines</b> and sends commands to a \b position interface.
+ */
+typedef interruptible_joint_trajectory_controller::
+    InterruptibleJointTrajectoryController<
+        trajectory_interface::QuinticSplineSegment<double>,
+        hardware_interface::PositionJointInterface>
+        InterruptibleJointTrajectoryController;
+}  // namespace position_controllers
 
 namespace velocity_controllers
 {
-  /**
-   * \brief Joint trajectory controller that represents trajectory segments as <b>quintic splines</b> and sends
-   * commands to a \b velocity interface.
-   */
-  typedef interruptible_joint_trajectory_controller::InterruptibleJointTrajectoryController<trajectory_interface::QuinticSplineSegment<double>,
-                                                                 hardware_interface::VelocityJointInterface>
-          InterruptibleJointTrajectoryController;
-}
+/**
+ * \brief Joint trajectory controller that represents trajectory segments as
+ * <b>quintic splines</b> and sends commands to a \b velocity interface.
+ */
+typedef interruptible_joint_trajectory_controller::
+    InterruptibleJointTrajectoryController<
+        trajectory_interface::QuinticSplineSegment<double>,
+        hardware_interface::VelocityJointInterface>
+        InterruptibleJointTrajectoryController;
+}  // namespace velocity_controllers
 
 namespace effort_controllers
 {
-  /**
-   * \brief Joint trajectory controller that represents trajectory segments as <b>quintic splines</b> and sends
-   * commands to an \b effort interface.
-   */
-  typedef interruptible_joint_trajectory_controller::InterruptibleJointTrajectoryController<trajectory_interface::QuinticSplineSegment<double>,
-                                                                 hardware_interface::EffortJointInterface>
-          InterruptibleJointTrajectoryController;
-}
+/**
+ * \brief Joint trajectory controller that represents trajectory segments as
+ * <b>quintic splines</b> and sends commands to an \b effort interface.
+ */
+typedef interruptible_joint_trajectory_controller::
+    InterruptibleJointTrajectoryController<
+        trajectory_interface::QuinticSplineSegment<double>,
+        hardware_interface::EffortJointInterface>
+        InterruptibleJointTrajectoryController;
+}  // namespace effort_controllers
 
 namespace pos_vel_controllers
 {
-  /**
-   * \brief Joint trajectory controller that represents trajectory segments as <b>quintic splines</b> and sends
-   * commands to an \b pos_vel interface.
-   */
-  typedef interruptible_joint_trajectory_controller::InterruptibleJointTrajectoryController<trajectory_interface::QuinticSplineSegment<double>,
-                                                                 hardware_interface::PosVelJointInterface>
-          InterruptibleJointTrajectoryController;
-}
+/**
+ * \brief Joint trajectory controller that represents trajectory segments as
+ * <b>quintic splines</b> and sends commands to an \b pos_vel interface.
+ */
+typedef interruptible_joint_trajectory_controller::
+    InterruptibleJointTrajectoryController<
+        trajectory_interface::QuinticSplineSegment<double>,
+        hardware_interface::PosVelJointInterface>
+        InterruptibleJointTrajectoryController;
+}  // namespace pos_vel_controllers
 
 namespace pos_vel_acc_controllers
 {
-  /**
-   * \brief Joint trajectory controller that represents trajectory segments as <b>quintic splines</b> and sends
-   * commands to a \b pos_vel_acc interface.
-   */
-  typedef interruptible_joint_trajectory_controller::InterruptibleJointTrajectoryController<trajectory_interface::QuinticSplineSegment<double>,
-                                                                 hardware_interface::PosVelAccJointInterface>
-          InterruptibleJointTrajectoryController;
-}
+/**
+ * \brief Joint trajectory controller that represents trajectory segments as
+ * <b>quintic splines</b> and sends commands to a \b pos_vel_acc interface.
+ */
+typedef interruptible_joint_trajectory_controller::
+    InterruptibleJointTrajectoryController<
+        trajectory_interface::QuinticSplineSegment<double>,
+        hardware_interface::PosVelAccJointInterface>
+        InterruptibleJointTrajectoryController;
+}  // namespace pos_vel_acc_controllers
 
-PLUGINLIB_EXPORT_CLASS(position_controllers::InterruptibleJointTrajectoryController, controller_interface::ControllerBase)
-PLUGINLIB_EXPORT_CLASS(velocity_controllers::InterruptibleJointTrajectoryController, controller_interface::ControllerBase)
-PLUGINLIB_EXPORT_CLASS(effort_controllers::InterruptibleJointTrajectoryController, controller_interface::ControllerBase)
-PLUGINLIB_EXPORT_CLASS(pos_vel_controllers::InterruptibleJointTrajectoryController, controller_interface::ControllerBase)
-PLUGINLIB_EXPORT_CLASS(pos_vel_acc_controllers::InterruptibleJointTrajectoryController, controller_interface::ControllerBase)
+PLUGINLIB_EXPORT_CLASS(
+    position_controllers::InterruptibleJointTrajectoryController,
+    controller_interface::ControllerBase)
+PLUGINLIB_EXPORT_CLASS(
+    velocity_controllers::InterruptibleJointTrajectoryController,
+    controller_interface::ControllerBase)
+PLUGINLIB_EXPORT_CLASS(
+    effort_controllers::InterruptibleJointTrajectoryController,
+    controller_interface::ControllerBase)
+PLUGINLIB_EXPORT_CLASS(
+    pos_vel_controllers::InterruptibleJointTrajectoryController,
+    controller_interface::ControllerBase)
+PLUGINLIB_EXPORT_CLASS(
+    pos_vel_acc_controllers::InterruptibleJointTrajectoryController,
+    controller_interface::ControllerBase)

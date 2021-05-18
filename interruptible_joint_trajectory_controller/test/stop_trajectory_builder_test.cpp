@@ -35,114 +35,144 @@
 
 namespace stop_trajectory_builder_test
 {
-static constexpr double EPS{1e-9};
+static constexpr double EPS{ 1e-9 };
 
 using QuinticSplineSegment = trajectory_interface::QuinticSplineSegment<double>;
-using Segment = joint_trajectory_controller::JointTrajectorySegment<QuinticSplineSegment>;
+using Segment =
+    joint_trajectory_controller::JointTrajectorySegment<QuinticSplineSegment>;
 using TrajectoryPerJoint = std::vector<Segment>;
 using Trajectory = std::vector<TrajectoryPerJoint>;
 
-using GoalHandle = actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction>::GoalHandle;
-using RealTimeServerGoalHandle = realtime_tools::RealtimeServerGoalHandle<control_msgs::FollowJointTrajectoryAction>;
+using GoalHandle = actionlib::ActionServer<
+    control_msgs::FollowJointTrajectoryAction>::GoalHandle;
+using RealTimeServerGoalHandle = realtime_tools::RealtimeServerGoalHandle<
+    control_msgs::FollowJointTrajectoryAction>;
 
 TEST(StopTrajectoryBuilderTest, testBuildNoStartTime)
 {
-  using Builder = joint_trajectory_controller::StopTrajectoryBuilder<QuinticSplineSegment>;
+  using Builder =
+      joint_trajectory_controller::StopTrajectoryBuilder<QuinticSplineSegment>;
 
-	const unsigned int number_of_joints{2};
-	const double stop_trajectory_duration{0.2};
-  Segment::State hold_state{number_of_joints};
+  const unsigned int number_of_joints{ 2 };
+  const double stop_trajectory_duration{ 0.2 };
+  Segment::State hold_state{ number_of_joints };
   Builder builder(stop_trajectory_duration, hold_state);
 
   Trajectory trajectory;
-  joint_trajectory_controller_tests::initDefaultTrajectory(number_of_joints, trajectory);
+  joint_trajectory_controller_tests::initDefaultTrajectory(number_of_joints,
+                                                           trajectory);
 
-  EXPECT_FALSE(builder.buildTrajectory(&trajectory))
-		<< "buildTrajectory() success despite start time is not set.";
+  EXPECT_FALSE(builder.buildTrajectory(&trajectory)) << "buildTrajectory() "
+                                                        "success despite start "
+                                                        "time is not set.";
 }
 
 TEST(StopTrajectoryBuilderTest, testBuildIncompleteTrajectory)
 {
-  using Builder = joint_trajectory_controller::StopTrajectoryBuilder<QuinticSplineSegment>;
+  using Builder =
+      joint_trajectory_controller::StopTrajectoryBuilder<QuinticSplineSegment>;
 
-	const unsigned int number_of_joints{2};
-	const double stop_trajectory_duration{0.2};
-  Segment::State hold_state{number_of_joints};
+  const unsigned int number_of_joints{ 2 };
+  const double stop_trajectory_duration{ 0.2 };
+  Segment::State hold_state{ number_of_joints };
   Builder builder(stop_trajectory_duration, hold_state);
 
   Trajectory trajectory;
-  EXPECT_FALSE(builder.buildTrajectory(&trajectory))
-		<< "buildTrajectory() success despite trajectory does not have enough TrajectoriesPerJoint.";
+  EXPECT_FALSE(builder.buildTrajectory(&trajectory)) << "buildTrajectory() "
+                                                        "success despite "
+                                                        "trajectory does not "
+                                                        "have enough "
+                                                        "TrajectoriesPerJoint.";
 
   trajectory.resize(number_of_joints);
-  EXPECT_FALSE(builder.buildTrajectory(&trajectory))
-		<< "buildTrajectory() success despite trajectory does not have enough segments.";
+  EXPECT_FALSE(builder.buildTrajectory(&trajectory)) << "buildTrajectory() "
+                                                        "success despite "
+                                                        "trajectory does not "
+                                                        "have enough segments.";
 }
 
 TEST(StopTrajectoryBuilderTest, testBuildSuccess)
 {
-  using Builder = joint_trajectory_controller::StopTrajectoryBuilder<QuinticSplineSegment>;
+  using Builder =
+      joint_trajectory_controller::StopTrajectoryBuilder<QuinticSplineSegment>;
 
-	const unsigned int number_of_joints{2};
-	const double stop_duration{0.2};
-  const double start_time{0.11};
-  Segment::State hold_state{number_of_joints};
-	hold_state.position.at(0) = 0.9;  // set arbitrary state
-	hold_state.velocity.at(0) = -0.03;
-	hold_state.position.at(1) = 1.68;
-	hold_state.velocity.at(1) = 3.7;
+  const unsigned int number_of_joints{ 2 };
+  const double stop_duration{ 0.2 };
+  const double start_time{ 0.11 };
+  Segment::State hold_state{ number_of_joints };
+  hold_state.position.at(0) = 0.9;  // set arbitrary state
+  hold_state.velocity.at(0) = -0.03;
+  hold_state.position.at(1) = 1.68;
+  hold_state.velocity.at(1) = 3.7;
   Builder builder(stop_duration, hold_state);
 
-	builder.setStartTime(start_time);
+  builder.setStartTime(start_time);
 
   Trajectory trajectory;
-  joint_trajectory_controller_tests::initDefaultTrajectory(number_of_joints, trajectory);
+  joint_trajectory_controller_tests::initDefaultTrajectory(number_of_joints,
+                                                           trajectory);
 
-  EXPECT_TRUE(builder.buildTrajectory(&trajectory)) << "buildTrajectory() should have been successful.";
+  EXPECT_TRUE(builder.buildTrajectory(&trajectory)) << "buildTrajectory() "
+                                                       "should have been "
+                                                       "successful.";
 
-	// check built trajectory
-  EXPECT_EQ(trajectory.size(), number_of_joints) << "Built trajectory has wrong number of trajectories per joint.";
+  // check built trajectory
+  EXPECT_EQ(trajectory.size(), number_of_joints) << "Built trajectory has "
+                                                    "wrong number of "
+                                                    "trajectories per joint.";
   for (const auto& jt : trajectory)
   {
     EXPECT_EQ(jt.size(), 1U) << "Unexpected number of trajectory points.";
   }
-  EXPECT_NEAR(trajectory.at(0).at(0).startTime(), start_time, EPS) << "Unexpected deviation in start time.";
-	EXPECT_NEAR(trajectory.at(0).at(0).endTime(), start_time + stop_duration, EPS) << "Unexpected deviation in end time.";
+  EXPECT_NEAR(trajectory.at(0).at(0).startTime(), start_time, EPS) << "Unexpect"
+                                                                      "ed "
+                                                                      "deviatio"
+                                                                      "n in "
+                                                                      "start "
+                                                                      "time.";
+  EXPECT_NEAR(trajectory.at(0).at(0).endTime(), start_time + stop_duration, EPS)
+      << "Unexpected deviation in end time.";
 
   // check start and end state
-  Segment::State sampled_state{1};
+  Segment::State sampled_state{ 1 };
   for (unsigned int i = 0; i < number_of_joints; ++i)
   {
-    trajectory.at(i).at(0).sample(trajectory.at(i).at(0).startTime(), sampled_state);
-		EXPECT_NEAR(sampled_state.position.at(0), hold_state.position.at(i), EPS)
-      << "Start state positions not equal for joint " << i;
-		EXPECT_NEAR(sampled_state.velocity.at(0), hold_state.velocity.at(i), EPS)
-      << "Start state velocities not equal for joint " << i;
+    trajectory.at(i).at(0).sample(trajectory.at(i).at(0).startTime(),
+                                  sampled_state);
+    EXPECT_NEAR(sampled_state.position.at(0), hold_state.position.at(i), EPS)
+        << "Start state positions not equal for joint " << i;
+    EXPECT_NEAR(sampled_state.velocity.at(0), hold_state.velocity.at(i), EPS)
+        << "Start state velocities not equal for joint " << i;
 
-    trajectory.at(i).at(0).sample(trajectory.at(i).at(0).endTime(), sampled_state);
-		EXPECT_NEAR(sampled_state.velocity.at(0), 0.0, EPS) << "End state velocity should be zero.";
-	}
+    trajectory.at(i).at(0).sample(trajectory.at(i).at(0).endTime(),
+                                  sampled_state);
+    EXPECT_NEAR(sampled_state.velocity.at(0), 0.0, EPS) << "End state velocity "
+                                                           "should be zero.";
+  }
 }
 
 TEST(StopTrajectoryBuilderTest, testResetStartTime)
 {
-  using Builder = joint_trajectory_controller::StopTrajectoryBuilder<QuinticSplineSegment>;
+  using Builder =
+      joint_trajectory_controller::StopTrajectoryBuilder<QuinticSplineSegment>;
 
-	const unsigned int number_of_joints{2};
-	const double stop_duration{0.2};
-  const double start_time{0.11};
-  Segment::State hold_state{number_of_joints};
+  const unsigned int number_of_joints{ 2 };
+  const double stop_duration{ 0.2 };
+  const double start_time{ 0.11 };
+  Segment::State hold_state{ number_of_joints };
 
   Builder builder(stop_duration, hold_state);
-	builder.setStartTime(start_time);
+  builder.setStartTime(start_time);
 
-	builder.reset();
+  builder.reset();
 
   Trajectory trajectory;
-  joint_trajectory_controller_tests::initDefaultTrajectory(number_of_joints, trajectory);
+  joint_trajectory_controller_tests::initDefaultTrajectory(number_of_joints,
+                                                           trajectory);
 
-  EXPECT_FALSE(builder.buildTrajectory(&trajectory))
-		<< "buildTrajectory() success despite start time war reset.";
+  EXPECT_FALSE(builder.buildTrajectory(&trajectory)) << "buildTrajectory() "
+                                                        "success despite start "
+                                                        "time war reset.";
 }
 
 /**
@@ -151,28 +181,38 @@ TEST(StopTrajectoryBuilderTest, testResetStartTime)
  */
 TEST(StopTrajectoryBuilderTest, testSetGoalHandle)
 {
-  using Builder = joint_trajectory_controller::StopTrajectoryBuilder<QuinticSplineSegment>;
+  using Builder =
+      joint_trajectory_controller::StopTrajectoryBuilder<QuinticSplineSegment>;
 
-	const unsigned int number_of_joints{2};
-	const double stop_duration{0.2};
-  const double start_time{0.11};
-  Segment::State hold_state{number_of_joints};
+  const unsigned int number_of_joints{ 2 };
+  const double stop_duration{ 0.2 };
+  const double start_time{ 0.11 };
+  Segment::State hold_state{ number_of_joints };
   GoalHandle gh;
-  boost::shared_ptr<RealTimeServerGoalHandle> rt_goal_handle = boost::make_shared<RealTimeServerGoalHandle>(gh);
+  boost::shared_ptr<RealTimeServerGoalHandle> rt_goal_handle =
+      boost::make_shared<RealTimeServerGoalHandle>(gh);
 
   Builder builder(stop_duration, hold_state);
-	builder.setStartTime(start_time);
+  builder.setStartTime(start_time);
   builder.setGoalHandle(rt_goal_handle);
 
-  EXPECT_EQ(rt_goal_handle.use_count(), 1) << "Builder should only store a reference on GoalHandlePtr.";
+  EXPECT_EQ(rt_goal_handle.use_count(), 1) << "Builder should only store a "
+                                              "reference on GoalHandlePtr.";
 
   Trajectory trajectory;
-  joint_trajectory_controller_tests::initDefaultTrajectory(number_of_joints, trajectory);
+  joint_trajectory_controller_tests::initDefaultTrajectory(number_of_joints,
+                                                           trajectory);
 
-  EXPECT_TRUE(builder.buildTrajectory(&trajectory)) << "buildTrajectory() should have been successful.";
+  EXPECT_TRUE(builder.buildTrajectory(&trajectory)) << "buildTrajectory() "
+                                                       "should have been "
+                                                       "successful.";
 
-  EXPECT_EQ(rt_goal_handle.use_count(), 1 + number_of_joints)
-    << "Unexpected owner count of the goal handle after building the trajectory.";
+  EXPECT_EQ(rt_goal_handle.use_count(), 1 + number_of_joints) << "Unexpected "
+                                                                 "owner count "
+                                                                 "of the goal "
+                                                                 "handle after "
+                                                                 "building the "
+                                                                 "trajectory.";
 }
 
 /**
@@ -181,29 +221,36 @@ TEST(StopTrajectoryBuilderTest, testSetGoalHandle)
  */
 TEST(StopTrajectoryBuilderTest, testResetGoalHandle)
 {
-  using Builder = joint_trajectory_controller::StopTrajectoryBuilder<QuinticSplineSegment>;
+  using Builder =
+      joint_trajectory_controller::StopTrajectoryBuilder<QuinticSplineSegment>;
 
-	const unsigned int number_of_joints{2};
-	const double stop_duration{0.2};
-  const double start_time{0.11};
-  Segment::State hold_state{number_of_joints};
+  const unsigned int number_of_joints{ 2 };
+  const double stop_duration{ 0.2 };
+  const double start_time{ 0.11 };
+  Segment::State hold_state{ number_of_joints };
   GoalHandle gh;
-  boost::shared_ptr<RealTimeServerGoalHandle> rt_goal_handle = boost::make_shared<RealTimeServerGoalHandle>(gh);
+  boost::shared_ptr<RealTimeServerGoalHandle> rt_goal_handle =
+      boost::make_shared<RealTimeServerGoalHandle>(gh);
 
   Builder builder(stop_duration, hold_state);
   builder.setGoalHandle(rt_goal_handle);
 
-  EXPECT_EQ(rt_goal_handle.use_count(), 1) << "Builder should only store a reference on GoalHandlePtr.";
+  EXPECT_EQ(rt_goal_handle.use_count(), 1) << "Builder should only store a "
+                                              "reference on GoalHandlePtr.";
 
-	builder.reset();
-	builder.setStartTime(start_time);
+  builder.reset();
+  builder.setStartTime(start_time);
 
   Trajectory trajectory;
-  joint_trajectory_controller_tests::initDefaultTrajectory(number_of_joints, trajectory);
+  joint_trajectory_controller_tests::initDefaultTrajectory(number_of_joints,
+                                                           trajectory);
 
-  EXPECT_TRUE(builder.buildTrajectory(&trajectory)) << "buildTrajectory() should have been successful.";
+  EXPECT_TRUE(builder.buildTrajectory(&trajectory)) << "buildTrajectory() "
+                                                       "should have been "
+                                                       "successful.";
 
-  EXPECT_EQ(rt_goal_handle.use_count(), 1) << "Modified owner count of the goal handle despite reset.";
+  EXPECT_EQ(rt_goal_handle.use_count(), 1) << "Modified owner count of the "
+                                              "goal handle despite reset.";
 }
 
 }  // namespace stop_trajectory_builder_test

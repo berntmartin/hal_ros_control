@@ -40,18 +40,17 @@ namespace joint_trajectory_controller_tests
 {
 AssertionResult waitForEvent(const std::function<bool()>& check_event,
                              const std::string& event_description,
-                             const ros::Duration& timeout,
-                             unsigned int repeat)
+                             const ros::Duration& timeout, unsigned int repeat)
 {
   unsigned int count = 0;
   ros::Time start_time = ros::Time::now();
   while (ros::ok())
   {
-    count = check_event() ? (count+1) : 0;
+    count = check_event() ? (count + 1) : 0;
     if ((ros::Time::now() - start_time) > timeout)
     {
-      return AssertionFailure() << "Timed out after " << timeout.toSec() << "s waiting for "
-                                << event_description << ".";
+      return AssertionFailure() << "Timed out after " << timeout.toSec()
+                                << "s waiting for " << event_description << ".";
     }
     ros::Duration(0.1).sleep();
     if (count == repeat)
@@ -62,12 +61,13 @@ AssertionResult waitForEvent(const std::function<bool()>& check_event,
   return AssertionFailure() << "ROS shutdown.";
 }
 
-void initDefaultTrajectory(unsigned int number_of_joints, std::vector<TrajectoryPerJoint>& trajectory)
+void initDefaultTrajectory(unsigned int number_of_joints,
+                           std::vector<TrajectoryPerJoint>& trajectory)
 {
-  Segment::State state{1};
+  Segment::State state{ 1 };
   Segment segment(0.0, state, 1.0, state);
-  TrajectoryPerJoint joint_traj{segment};
+  TrajectoryPerJoint joint_traj{ segment };
   trajectory.resize(number_of_joints, joint_traj);
 }
 
-}  // joint_trajectory_controller_tests
+}  // namespace joint_trajectory_controller_tests

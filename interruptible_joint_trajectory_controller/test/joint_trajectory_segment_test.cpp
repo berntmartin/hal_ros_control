@@ -40,28 +40,32 @@ using namespace trajectory_msgs;
 // Floating-point value comparison threshold
 const double EPS = 1e-9;
 
-typedef JointTrajectorySegment<trajectory_interface::QuinticSplineSegment<double> > Segment;
+typedef JointTrajectorySegment<
+    trajectory_interface::QuinticSplineSegment<double> >
+    Segment;
 typedef std::vector<unsigned int> MappingType;
 
 TEST(WraparoundOffsetTest, WrappingPositions)
 {
   // Setup with state increments that cause multi-loop wrapping
   const double half_pi = M_PI / 2.0;
-  const double two_pi  = 2.0 * M_PI;
+  const double two_pi = 2.0 * M_PI;
 
   std::vector<double> pos1(2);
-  pos1[0] =  half_pi / 2.0;
-  pos1[1] =  half_pi / 2.0;
+  pos1[0] = half_pi / 2.0;
+  pos1[1] = half_pi / 2.0;
 
   std::vector<double> pos2(2);
-  pos2[0] =  two_pi + half_pi;
-  pos2[1] =  2.0 * two_pi + half_pi;
+  pos2[0] = two_pi + half_pi;
+  pos2[1] = 2.0 * two_pi + half_pi;
 
   // No wrapping joints
   {
     std::vector<bool> angle_wraparound(2, false);
-    double wraparound_offset1 = wraparoundJointOffset(pos1[0], pos2[0], angle_wraparound[0]);
-    double wraparound_offset2 = wraparoundJointOffset(pos1[1], pos2[1], angle_wraparound[1]);
+    double wraparound_offset1 =
+        wraparoundJointOffset(pos1[0], pos2[0], angle_wraparound[0]);
+    double wraparound_offset2 =
+        wraparoundJointOffset(pos1[1], pos2[1], angle_wraparound[1]);
     EXPECT_NEAR(0.0, wraparound_offset1, EPS);
     EXPECT_NEAR(0.0, wraparound_offset2, EPS);
   }
@@ -74,27 +78,30 @@ TEST(WraparoundOffsetTest, WrappingPositions)
 
     // From state1 to state2
     {
-      double wraparound_offset1 = wraparoundJointOffset(pos1[0], pos2[0], angle_wraparound[0]);
-      double wraparound_offset2 = wraparoundJointOffset(pos1[1], pos2[1], angle_wraparound[1]);
+      double wraparound_offset1 =
+          wraparoundJointOffset(pos1[0], pos2[0], angle_wraparound[0]);
+      double wraparound_offset2 =
+          wraparoundJointOffset(pos1[1], pos2[1], angle_wraparound[1]);
       EXPECT_NEAR(-two_pi, wraparound_offset1, EPS);
       EXPECT_NEAR(0.0, wraparound_offset2, EPS);
     }
 
     // From state2 to state1
     {
-      double wraparound_offset1 = wraparoundJointOffset(pos2[0], pos1[0], angle_wraparound[0]);
-      double wraparound_offset2 = wraparoundJointOffset(pos2[1], pos1[1], angle_wraparound[1]);
+      double wraparound_offset1 =
+          wraparoundJointOffset(pos2[0], pos1[0], angle_wraparound[0]);
+      double wraparound_offset2 =
+          wraparoundJointOffset(pos2[1], pos1[1], angle_wraparound[1]);
       EXPECT_NEAR(two_pi, wraparound_offset1, EPS);
       EXPECT_NEAR(0.0, wraparound_offset2, EPS);
     }
 
     // Special case, from M_PI/2 to -M_PI
-    double wraparound_offset1 = wraparoundJointOffset(M_PI/2, -M_PI, true);
+    double wraparound_offset1 = wraparoundJointOffset(M_PI / 2, -M_PI, true);
     EXPECT_NEAR(two_pi, wraparound_offset1, EPS);
     // From -M_PI to M_PI/2
-    wraparound_offset1 = wraparoundJointOffset(-M_PI, M_PI/2, true);
+    wraparound_offset1 = wraparoundJointOffset(-M_PI, M_PI / 2, true);
     EXPECT_NEAR(-two_pi, wraparound_offset1, EPS);
-
   }
 
   // Both wrapping joints
@@ -103,16 +110,20 @@ TEST(WraparoundOffsetTest, WrappingPositions)
 
     // From state1 to state2
     {
-      double wraparound_offset1 = wraparoundJointOffset(pos1[0], pos2[0], angle_wraparound[0]);
-      double wraparound_offset2 = wraparoundJointOffset(pos1[1], pos2[1], angle_wraparound[1]);
+      double wraparound_offset1 =
+          wraparoundJointOffset(pos1[0], pos2[0], angle_wraparound[0]);
+      double wraparound_offset2 =
+          wraparoundJointOffset(pos1[1], pos2[1], angle_wraparound[1]);
       EXPECT_NEAR(-two_pi, wraparound_offset1, EPS);
       EXPECT_NEAR(-2.0 * two_pi, wraparound_offset2, EPS);
     }
 
     // From state2 to state1
     {
-      double wraparound_offset1 = wraparoundJointOffset(pos2[0], pos1[0], angle_wraparound[0]);
-      double wraparound_offset2 = wraparoundJointOffset(pos2[1], pos1[1], angle_wraparound[1]);
+      double wraparound_offset1 =
+          wraparoundJointOffset(pos2[0], pos1[0], angle_wraparound[0]);
+      double wraparound_offset2 =
+          wraparoundJointOffset(pos2[1], pos1[1], angle_wraparound[1]);
       EXPECT_NEAR(two_pi, wraparound_offset1, EPS);
       EXPECT_NEAR(2.0 * two_pi, wraparound_offset2, EPS);
     }
@@ -130,13 +141,15 @@ TEST(WraparoundOffsetTest, WrappingPositionsPiSingularity)
   std::vector<bool> angle_wraparound(1, true);
   // From state1 to state2
   {
-    double wraparound_offset1 = wraparoundJointOffset(pos1[0], pos2[0], angle_wraparound[0]);
+    double wraparound_offset1 =
+        wraparoundJointOffset(pos1[0], pos2[0], angle_wraparound[0]);
     EXPECT_NEAR(0.0, wraparound_offset1, EPS);
   }
 
   // From state2 to state1
   {
-    double wraparound_offset1 = wraparoundJointOffset(pos2[0], pos1[0], angle_wraparound[0]);
+    double wraparound_offset1 =
+        wraparoundJointOffset(pos2[0], pos1[0], angle_wraparound[0]);
     EXPECT_NEAR(0.0, wraparound_offset1, EPS);
   }
 }
@@ -147,12 +160,12 @@ TEST(WraparoundOffsetTest, NonWrappingPositions)
   const double half_pi = M_PI / 2.0;
 
   std::vector<double> pos1(2);
-  pos1[0] =  half_pi / 2.0;
-  pos1[1] =  half_pi / 2.0;
+  pos1[0] = half_pi / 2.0;
+  pos1[1] = half_pi / 2.0;
 
   std::vector<double> pos2(2);
-  pos2[0] =  0.0;
-  pos2[1] =  2.0 * half_pi;
+  pos2[0] = 0.0;
+  pos2[1] = 2.0 * half_pi;
 
   // Both wrapping joints
   {
@@ -160,16 +173,20 @@ TEST(WraparoundOffsetTest, NonWrappingPositions)
 
     // From state1 to state2
     {
-      double wraparound_offset1 = wraparoundJointOffset(pos1[0], pos2[0], angle_wraparound[0]);
-      double wraparound_offset2 = wraparoundJointOffset(pos1[1], pos2[1], angle_wraparound[1]);
+      double wraparound_offset1 =
+          wraparoundJointOffset(pos1[0], pos2[0], angle_wraparound[0]);
+      double wraparound_offset2 =
+          wraparoundJointOffset(pos1[1], pos2[1], angle_wraparound[1]);
       EXPECT_NEAR(0.0, wraparound_offset1, EPS);
       EXPECT_NEAR(0.0, wraparound_offset2, EPS);
     }
 
     // From state2 to state1
     {
-      double wraparound_offset1 = wraparoundJointOffset(pos2[0], pos1[0], angle_wraparound[0]);
-      double wraparound_offset2 = wraparoundJointOffset(pos2[1], pos1[1], angle_wraparound[1]);
+      double wraparound_offset1 =
+          wraparoundJointOffset(pos2[0], pos1[0], angle_wraparound[0]);
+      double wraparound_offset2 =
+          wraparoundJointOffset(pos2[1], pos1[1], angle_wraparound[1]);
       EXPECT_NEAR(0.0, wraparound_offset1, EPS);
       EXPECT_NEAR(0.0, wraparound_offset2, EPS);
     }
@@ -179,8 +196,7 @@ TEST(WraparoundOffsetTest, NonWrappingPositions)
 class JointTrajectorySegmentTest : public ::testing::Test
 {
 public:
-  JointTrajectorySegmentTest()
-    : traj_start_time(0.5)
+  JointTrajectorySegmentTest() : traj_start_time(0.5)
   {
     p_start.positions.resize(1, 2.0);
     p_start.velocities.resize(1, -1.0);
@@ -200,11 +216,11 @@ public:
   }
 
 protected:
-  ros::Time            traj_start_time;
+  ros::Time traj_start_time;
   JointTrajectoryPoint p_start;
   JointTrajectoryPoint p_end;
 
-  typename Segment::Time  start_time,  end_time;
+  typename Segment::Time start_time, end_time;
   typename Segment::State start_state, end_state;
 };
 
@@ -213,44 +229,79 @@ TEST_F(JointTrajectorySegmentTest, InvalidSegmentConstruction)
   // Empty start point
   {
     JointTrajectoryPoint p_start_bad;
-    EXPECT_THROW(Segment(traj_start_time, p_start_bad, p_end), std::invalid_argument);
-    try {Segment(traj_start_time, JointTrajectoryPoint(), p_end);}
-    catch (const std::invalid_argument& ex) {ROS_ERROR_STREAM(ex.what());}
+    EXPECT_THROW(Segment(traj_start_time, p_start_bad, p_end),
+                 std::invalid_argument);
+    try
+    {
+      Segment(traj_start_time, JointTrajectoryPoint(), p_end);
+    }
+    catch (const std::invalid_argument& ex)
+    {
+      ROS_ERROR_STREAM(ex.what());
+    }
   }
 
   // Start/end data size mismatch
   {
     JointTrajectoryPoint p_start_bad = p_start;
     p_start_bad.positions.push_back(0.0);
-    EXPECT_THROW(Segment(traj_start_time, p_start_bad, p_end), std::invalid_argument);
-    try {Segment(traj_start_time, p_start_bad, p_end);}
-    catch (const std::invalid_argument& ex) {ROS_ERROR_STREAM(ex.what());}
+    EXPECT_THROW(Segment(traj_start_time, p_start_bad, p_end),
+                 std::invalid_argument);
+    try
+    {
+      Segment(traj_start_time, p_start_bad, p_end);
+    }
+    catch (const std::invalid_argument& ex)
+    {
+      ROS_ERROR_STREAM(ex.what());
+    }
   }
 
   // Invalid start state
   {
     JointTrajectoryPoint p_start_bad = p_start;
     p_start_bad.velocities.push_back(0.0);
-    EXPECT_THROW(Segment(traj_start_time, p_start_bad, p_end), std::invalid_argument);
-    try {Segment(traj_start_time, p_start_bad, p_end);}
-    catch (const std::invalid_argument& ex) {ROS_ERROR_STREAM(ex.what());}
+    EXPECT_THROW(Segment(traj_start_time, p_start_bad, p_end),
+                 std::invalid_argument);
+    try
+    {
+      Segment(traj_start_time, p_start_bad, p_end);
+    }
+    catch (const std::invalid_argument& ex)
+    {
+      ROS_ERROR_STREAM(ex.what());
+    }
   }
 
   // Invalid end state
   {
     JointTrajectoryPoint p_end_bad = p_end;
     p_end_bad.velocities.push_back(0.0);
-    EXPECT_THROW(Segment(traj_start_time, p_start, p_end_bad), std::invalid_argument);
-    try {Segment(traj_start_time, p_start, p_end_bad);}
-    catch (const std::invalid_argument& ex) {ROS_ERROR_STREAM(ex.what());}
+    EXPECT_THROW(Segment(traj_start_time, p_start, p_end_bad),
+                 std::invalid_argument);
+    try
+    {
+      Segment(traj_start_time, p_start, p_end_bad);
+    }
+    catch (const std::invalid_argument& ex)
+    {
+      ROS_ERROR_STREAM(ex.what());
+    }
   }
 
   // Invalid joint wraparound specification
   {
     std::vector<double> pos_offset(2);
-    EXPECT_THROW(Segment(traj_start_time, p_start, p_end, pos_offset), std::invalid_argument);
-    try {Segment(traj_start_time, p_start, p_end, pos_offset);}
-    catch (const std::invalid_argument& ex) {ROS_ERROR_STREAM(ex.what());}
+    EXPECT_THROW(Segment(traj_start_time, p_start, p_end, pos_offset),
+                 std::invalid_argument);
+    try
+    {
+      Segment(traj_start_time, p_start, p_end, pos_offset);
+    }
+    catch (const std::invalid_argument& ex)
+    {
+      ROS_ERROR_STREAM(ex.what());
+    }
   }
 }
 
@@ -262,17 +313,19 @@ TEST_F(JointTrajectorySegmentTest, ValidSegmentConstructionRos)
 
   // Check start/end times
   {
-    const typename Segment::Time start_time = (traj_start_time + p_start.time_from_start).toSec();
-    const typename Segment::Time end_time   = (traj_start_time + p_end.time_from_start).toSec();
+    const typename Segment::Time start_time =
+        (traj_start_time + p_start.time_from_start).toSec();
+    const typename Segment::Time end_time =
+        (traj_start_time + p_end.time_from_start).toSec();
     EXPECT_EQ(start_time, segment.startTime());
-    EXPECT_EQ(end_time,   segment.endTime());
+    EXPECT_EQ(end_time, segment.endTime());
   }
 
   // Check start state
   {
     typename Segment::State state;
     segment.sample(segment.startTime(), state);
-    EXPECT_EQ(p_start.positions[0],  state.position[0]);
+    EXPECT_EQ(p_start.positions[0], state.position[0]);
     EXPECT_EQ(p_start.velocities[0], state.velocity[0]);
   }
 
@@ -280,7 +333,7 @@ TEST_F(JointTrajectorySegmentTest, ValidSegmentConstructionRos)
   {
     typename Segment::State state;
     segment.sample(segment.endTime(), state);
-    EXPECT_EQ(p_end.positions[0],  state.position[0]);
+    EXPECT_EQ(p_end.positions[0], state.position[0]);
     EXPECT_EQ(p_end.velocities[0], state.velocity[0]);
   }
 }
@@ -293,17 +346,19 @@ TEST_F(JointTrajectorySegmentTest, ValidSegmentConstruction)
 
   // Check start/end times
   {
-    const typename Segment::Time start_time = (traj_start_time + p_start.time_from_start).toSec();
-    const typename Segment::Time end_time   = (traj_start_time + p_end.time_from_start).toSec();
+    const typename Segment::Time start_time =
+        (traj_start_time + p_start.time_from_start).toSec();
+    const typename Segment::Time end_time =
+        (traj_start_time + p_end.time_from_start).toSec();
     EXPECT_EQ(start_time, segment.startTime());
-    EXPECT_EQ(end_time,   segment.endTime());
+    EXPECT_EQ(end_time, segment.endTime());
   }
 
   // Check start state
   {
     typename Segment::State state;
     segment.sample(segment.startTime(), state);
-    EXPECT_EQ(p_start.positions[0],  state.position[0]);
+    EXPECT_EQ(p_start.positions[0], state.position[0]);
     EXPECT_EQ(p_start.velocities[0], state.velocity[0]);
   }
 
@@ -311,15 +366,16 @@ TEST_F(JointTrajectorySegmentTest, ValidSegmentConstruction)
   {
     typename Segment::State state;
     segment.sample(segment.endTime(), state);
-    EXPECT_EQ(p_end.positions[0],  state.position[0]);
+    EXPECT_EQ(p_end.positions[0], state.position[0]);
     EXPECT_EQ(p_end.velocities[0], state.velocity[0]);
   }
 }
 
 TEST_F(JointTrajectorySegmentTest, CrossValidateSegmentConstruction)
 {
-  // Compare the output of initializing a segment from a ROS message, or from time/state data structures
-  // This test also checks that empty accelerations in a ROS message are honored and not initialized to zero.
+  // Compare the output of initializing a segment from a ROS message, or from
+  // time/state data structures This test also checks that empty accelerations
+  // in a ROS message are honored and not initialized to zero.
 
   // Construct segment from time/state data
   EXPECT_NO_THROW(Segment(start_time, start_state, end_time, end_state));
@@ -342,8 +398,8 @@ TEST_F(JointTrajectorySegmentTest, CrossValidateSegmentConstruction)
     segment_no_ros.sample(segment_no_ros.startTime(), state_no_ros);
     segment_ros.sample(segment_ros.startTime(), state_ros);
 
-    EXPECT_EQ(state_ros.position[0],     state_no_ros.position[0]);
-    EXPECT_EQ(state_ros.velocity[0],     state_no_ros.velocity[0]);
+    EXPECT_EQ(state_ros.position[0], state_no_ros.position[0]);
+    EXPECT_EQ(state_ros.velocity[0], state_no_ros.velocity[0]);
     EXPECT_EQ(state_ros.acceleration[0], state_no_ros.acceleration[0]);
   }
 
@@ -354,8 +410,8 @@ TEST_F(JointTrajectorySegmentTest, CrossValidateSegmentConstruction)
     segment_no_ros.sample(segment_no_ros.endTime(), state_no_ros);
     segment_ros.sample(segment_ros.endTime(), state_ros);
 
-    EXPECT_EQ(state_ros.position[0],     state_no_ros.position[0]);
-    EXPECT_EQ(state_ros.velocity[0],     state_no_ros.velocity[0]);
+    EXPECT_EQ(state_ros.position[0], state_no_ros.position[0]);
+    EXPECT_EQ(state_ros.velocity[0], state_no_ros.velocity[0]);
     EXPECT_EQ(state_ros.acceleration[0], state_no_ros.acceleration[0]);
   }
 }
@@ -389,4 +445,3 @@ int main(int argc, char** argv)
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
-

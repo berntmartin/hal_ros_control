@@ -40,7 +40,7 @@ const double EPS = 1e-9;
 
 typedef QuinticSplineSegment<double> Segment;
 typedef typename Segment::State State;
-typedef typename Segment::Time  Time;
+typedef typename Segment::Time Time;
 
 TEST(QuinticSplineSegmentTest, StateConstructor)
 {
@@ -76,63 +76,124 @@ TEST(QuinticSplineSegmentTest, Accessors)
 TEST(QuinticSplineSegmentTest, InvalidSegmentConstruction)
 {
   State valid_state(1);
-  valid_state.position[0]     = 0.0;
-  valid_state.velocity[0]     = 0.0;
+  valid_state.position[0] = 0.0;
+  valid_state.velocity[0] = 0.0;
   valid_state.acceleration[0] = 0.0;
 
-  const Time start_time       =  1.0;
-  const Time valid_end_time   =  2.0;
+  const Time start_time = 1.0;
+  const Time valid_end_time = 2.0;
 
   // Empty state
   {
     State empty_state;
-    EXPECT_THROW(Segment(start_time, empty_state, valid_end_time, valid_state), std::invalid_argument);
-    EXPECT_THROW(Segment(start_time, valid_state, valid_end_time, empty_state), std::invalid_argument);
-    EXPECT_THROW(Segment(start_time, empty_state, valid_end_time, empty_state), std::invalid_argument);
-    try{Segment(start_time, empty_state, valid_end_time, empty_state);}
-    catch(const std::invalid_argument& ex) {ROS_ERROR_STREAM(ex.what());}
+    EXPECT_THROW(Segment(start_time, empty_state, valid_end_time, valid_state),
+                 std::invalid_argument);
+    EXPECT_THROW(Segment(start_time, valid_state, valid_end_time, empty_state),
+                 std::invalid_argument);
+    EXPECT_THROW(Segment(start_time, empty_state, valid_end_time, empty_state),
+                 std::invalid_argument);
+    try
+    {
+      Segment(start_time, empty_state, valid_end_time, empty_state);
+    }
+    catch (const std::invalid_argument& ex)
+    {
+      ROS_ERROR_STREAM(ex.what());
+    }
   }
 
   // Start/end state size mismatch
   {
     State bad_size_state(2);
-    EXPECT_THROW(Segment(start_time, bad_size_state, valid_end_time, valid_state),    std::invalid_argument);
-    EXPECT_THROW(Segment(start_time, valid_state,    valid_end_time, bad_size_state), std::invalid_argument);
-    EXPECT_THROW(Segment(start_time, bad_size_state, valid_end_time, valid_state),   std::invalid_argument);
-    try{Segment(start_time, bad_size_state, valid_end_time, valid_state);}
-    catch(const std::invalid_argument& ex) {ROS_ERROR_STREAM(ex.what());}
+    EXPECT_THROW(
+        Segment(start_time, bad_size_state, valid_end_time, valid_state),
+        std::invalid_argument);
+    EXPECT_THROW(
+        Segment(start_time, valid_state, valid_end_time, bad_size_state),
+        std::invalid_argument);
+    EXPECT_THROW(
+        Segment(start_time, bad_size_state, valid_end_time, valid_state),
+        std::invalid_argument);
+    try
+    {
+      Segment(start_time, bad_size_state, valid_end_time, valid_state);
+    }
+    catch (const std::invalid_argument& ex)
+    {
+      ROS_ERROR_STREAM(ex.what());
+    }
   }
 
   // Start/end state velocity size mismatch
   {
     State bad_vel_state = valid_state;
     bad_vel_state.velocity.push_back(0.0);
-    EXPECT_THROW(Segment(start_time, bad_vel_state, valid_end_time, valid_state),    std::invalid_argument);
-    EXPECT_THROW(Segment(start_time, valid_state,    valid_end_time, bad_vel_state), std::invalid_argument);
-    try{Segment(start_time, bad_vel_state, valid_end_time, valid_state);}
-    catch(const std::invalid_argument& ex) {ROS_ERROR_STREAM(ex.what());}
-    try{Segment(start_time, valid_state, valid_end_time, bad_vel_state);}
-    catch(const std::invalid_argument& ex) {ROS_ERROR_STREAM(ex.what());}
+    EXPECT_THROW(
+        Segment(start_time, bad_vel_state, valid_end_time, valid_state),
+        std::invalid_argument);
+    EXPECT_THROW(
+        Segment(start_time, valid_state, valid_end_time, bad_vel_state),
+        std::invalid_argument);
+    try
+    {
+      Segment(start_time, bad_vel_state, valid_end_time, valid_state);
+    }
+    catch (const std::invalid_argument& ex)
+    {
+      ROS_ERROR_STREAM(ex.what());
+    }
+    try
+    {
+      Segment(start_time, valid_state, valid_end_time, bad_vel_state);
+    }
+    catch (const std::invalid_argument& ex)
+    {
+      ROS_ERROR_STREAM(ex.what());
+    }
   }
 
   // Start/end state acceleration size mismatch
   {
     State bad_acc_state = valid_state;
     bad_acc_state.acceleration.push_back(0.0);
-    EXPECT_THROW(Segment(start_time, bad_acc_state, valid_end_time, valid_state),   std::invalid_argument);
-    EXPECT_THROW(Segment(start_time, valid_state,   valid_end_time, bad_acc_state), std::invalid_argument);
-    try{Segment(start_time, bad_acc_state, valid_end_time, valid_state);}
-    catch(const std::invalid_argument& ex) {ROS_ERROR_STREAM(ex.what());}
-    try{Segment(start_time, valid_state, valid_end_time, bad_acc_state);}
-    catch(const std::invalid_argument& ex) {ROS_ERROR_STREAM(ex.what());}
+    EXPECT_THROW(
+        Segment(start_time, bad_acc_state, valid_end_time, valid_state),
+        std::invalid_argument);
+    EXPECT_THROW(
+        Segment(start_time, valid_state, valid_end_time, bad_acc_state),
+        std::invalid_argument);
+    try
+    {
+      Segment(start_time, bad_acc_state, valid_end_time, valid_state);
+    }
+    catch (const std::invalid_argument& ex)
+    {
+      ROS_ERROR_STREAM(ex.what());
+    }
+    try
+    {
+      Segment(start_time, valid_state, valid_end_time, bad_acc_state);
+    }
+    catch (const std::invalid_argument& ex)
+    {
+      ROS_ERROR_STREAM(ex.what());
+    }
   }
 
   // Invalid duration triggers an exception
   {
     const Time invalid_end_time = -1.0;
-    EXPECT_THROW(Segment(start_time, valid_state, invalid_end_time, valid_state), std::invalid_argument);
-    try{Segment(start_time, valid_state, invalid_end_time, valid_state);}
-    catch(const std::invalid_argument& ex) {ROS_ERROR_STREAM(ex.what());}
+    EXPECT_THROW(
+        Segment(start_time, valid_state, invalid_end_time, valid_state),
+        std::invalid_argument);
+    try
+    {
+      Segment(start_time, valid_state, invalid_end_time, valid_state);
+    }
+    catch (const std::invalid_argument& ex)
+    {
+      ROS_ERROR_STREAM(ex.what());
+    }
   }
 }
 
@@ -244,13 +305,13 @@ TEST(QuinticSplineSegmentTest, ZeroDurationPosVelAccEnpointsSampler)
 {
   const Time start_time = 1.0;
   State start_state(1);
-  start_state.position[0]     = 1.0;
-  start_state.velocity[0]     = 2.0;
+  start_state.position[0] = 1.0;
+  start_state.velocity[0] = 2.0;
   start_state.acceleration[0] = 3.0;
 
   State end_state(1);
-  end_state.position[0]     = 2.0;
-  end_state.velocity[0]     = 4.0;
+  end_state.position[0] = 2.0;
+  end_state.velocity[0] = 4.0;
   end_state.acceleration[0] = 6.0;
 
   // Construct segment
@@ -295,13 +356,16 @@ TEST(QuinticSplineSegmentTest, PosEnpointsSampler)
 
   const Time end_time = 3.0;
   State end_state(1);
-  end_state.position[0]     = 2.0;
-  end_state.velocity[0]     = 0.0; // Should be ignored, as start state does not specify it
-  end_state.acceleration[0] = 0.0; // Should be ignored, as start state does not specify it
+  end_state.position[0] = 2.0;
+  end_state.velocity[0] =
+      0.0;  // Should be ignored, as start state does not specify it
+  end_state.acceleration[0] =
+      0.0;  // Should be ignored, as start state does not specify it
 
   const Time duration = end_time - start_time;
 
-  const double velocity = (end_state.position[0] - start_state.position[0]) / duration;
+  const double velocity =
+      (end_state.position[0] - start_state.position[0]) / duration;
 
   // Construct segment
   EXPECT_NO_THROW(Segment(start_time, start_state, end_time, end_state));
@@ -358,15 +422,16 @@ TEST(QuinticSplineSegmentTest, PosVelEnpointsSampler)
   // Start and end state taken from x^3 - 2x
   const Time start_time = 1.0;
   State start_state(1);
-  start_state.position[0] =  0.0;
+  start_state.position[0] = 0.0;
   start_state.velocity[0] = -2.0;
   start_state.acceleration.clear();
 
   const Time end_time = 3.0;
   State end_state(1);
-  end_state.position[0]     =  4.0;
-  end_state.velocity[0]     = 10.0;
-  end_state.acceleration[0] =  0.0; // Should be ignored, as start state does not specify it
+  end_state.position[0] = 4.0;
+  end_state.velocity[0] = 10.0;
+  end_state.acceleration[0] =
+      0.0;  // Should be ignored, as start state does not specify it
 
   const Time duration = end_time - start_time;
 
@@ -424,17 +489,18 @@ TEST(QuinticSplineSegmentTest, PosVelEnpointsSampler)
 
 TEST(QuinticSplineSegmentTest, PosVeAcclEnpointsSampler)
 {
-  // Start and end state taken from x(x-1)(x-2)(x-3)(x-4) = x^5 -10x^4 + 35x^3 -50x^2 + 24x
+  // Start and end state taken from x(x-1)(x-2)(x-3)(x-4) = x^5 -10x^4 + 35x^3
+  // -50x^2 + 24x
   const Time start_time = 1.0;
   State start_state(1);
-  start_state.position[0]     =    0.0;
-  start_state.velocity[0]     =   24.0;
+  start_state.position[0] = 0.0;
+  start_state.velocity[0] = 24.0;
   start_state.acceleration[0] = -100.0;
 
   const Time end_time = 3.0;
   State end_state(1);
-  end_state.position[0]     = 0.0;
-  end_state.velocity[0]     = 4.0;
+  end_state.position[0] = 0.0;
+  end_state.velocity[0] = 4.0;
   end_state.acceleration[0] = 0.0;
 
   const Time duration = end_time - start_time;
@@ -465,7 +531,7 @@ TEST(QuinticSplineSegmentTest, PosVeAcclEnpointsSampler)
   {
     State state;
     segment.sample(start_time + 1.0, state);
-    EXPECT_NEAR( 0.0, state.position[0], EPS);
+    EXPECT_NEAR(0.0, state.position[0], EPS);
     EXPECT_NEAR(-6.0, state.velocity[0], EPS);
     EXPECT_NEAR(10.0, state.acceleration[0], EPS);
   }
@@ -495,12 +561,12 @@ TEST(QuinticSplineSegmentTest, MultiDofTest)
 
   const Time start_time = 1.0;
   State start_state;
-  start_state.position.push_back( 0.0);
+  start_state.position.push_back(0.0);
   start_state.position.push_back(-1.0);
 
   const Time end_time = 2.0;
   State end_state;
-  end_state.position.push_back( 1.0);
+  end_state.position.push_back(1.0);
   end_state.position.push_back(-2.0);
 
   Segment segment(start_time, start_state, end_time, end_state);
@@ -528,8 +594,10 @@ TEST(QuinticSplineSegmentTest, MultiDofTest)
 
     for (unsigned int i = 0; i < segment.size(); ++i)
     {
-      const double position = (end_state.position[i] + start_state.position[i]) / 2.0;
-      const double velocity = (end_state.position[i] - start_state.position[i]) / duration;
+      const double position =
+          (end_state.position[i] + start_state.position[i]) / 2.0;
+      const double velocity =
+          (end_state.position[i] - start_state.position[i]) / duration;
       EXPECT_NEAR(position, state.position[i], EPS);
       EXPECT_NEAR(velocity, state.velocity[i], EPS);
       EXPECT_NEAR(0.0, state.acceleration[i], EPS);
@@ -556,4 +624,3 @@ int main(int argc, char** argv)
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
-
