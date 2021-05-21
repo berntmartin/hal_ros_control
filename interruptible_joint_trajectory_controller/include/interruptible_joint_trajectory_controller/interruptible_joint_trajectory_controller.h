@@ -62,7 +62,7 @@
 #include <machinekit_interfaces/realtime_event_interface.h>
 #include <machinekit_interfaces/probe_interface.h>
 #include <machinekit_interfaces/joint_event_interface.h>
-#include <machinekit_interfaces/generic_interface.h>
+#include <machinekit_interfaces/hal_pin_interface.h>
 
 // Bring in enums
 using machinekit_interfaces::ProbeState;
@@ -166,7 +166,7 @@ protected:
   std::vector<machinekit_interfaces::JointEventDataHandle> probe_joint_results_;
   machinekit_interfaces::ProbeHandle probe_handle_;
   machinekit_interfaces::RealtimeEventHandle stop_event_;
-  machinekit_interfaces::GenericInt32Handle error_code_;
+  machinekit_interfaces::HALS32PinHandle error_code_;
   int jog_err_threshold_;
   int jog_err_count_;  // Used to count "soft" errors that should only be
                       // reported if many happen at once
@@ -290,11 +290,11 @@ bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
   }
   {
     ROS_INFO_STREAM_NAMED(this->name_, "Claiming HAL pin resources");
-    machinekit_interfaces::GenericInt32Interface* generic_int32_intf =
-        robot_hw->get<machinekit_interfaces::GenericInt32Interface>();
+    machinekit_interfaces::HALS32PinInterface* hal_s32_pin_intf =
+        robot_hw->get<machinekit_interfaces::HALS32PinInterface>();
     auto hw_if_typename = hardware_interface::internal::demangledTypeName<
-        machinekit_interfaces::GenericInt32Interface>();
-    if (!generic_int32_intf)
+        machinekit_interfaces::HALS32PinInterface>();
+    if (!hal_s32_pin_intf)
     {
       ROS_ERROR("This controller requires a hardware interface of type '%s'."
                 " Make sure this is registered in the "
@@ -302,11 +302,11 @@ bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
                 hw_if_typename.c_str());
       return false;
     }
-    generic_int32_intf->clearClaims();
+    hal_s32_pin_intf->clearClaims();
 
     try
     {
-      error_code_ = generic_int32_intf->getHandle("controller_status");
+      error_code_ = hal_s32_pin_intf->getHandle("controller_status");
     }
     catch (...)
     {
@@ -316,9 +316,9 @@ bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
       return false;
     }
     hardware_interface::InterfaceResources iface_res(
-        hw_if_typename, generic_int32_intf->getClaims());
+        hw_if_typename, hal_s32_pin_intf->getClaims());
     claimed_resources.push_back(iface_res);
-    generic_int32_intf->clearClaims();
+    hal_s32_pin_intf->clearClaims();
   }
 
   ROS_INFO_STREAM_NAMED(this->name_, "Claimed " << claimed_resources.size()
@@ -557,22 +557,21 @@ bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
                   << response.stop_event << " at time " << response.event_time);
   if (response.stop_event)
   {
-    std::vector<double> probe_positions(this->getNumberOfJoints(), 0.0);
+    std::vector<double> event_positions(this->getNumberOfJoints(), 0.0);
     for (unsigned int joint_index = 0; joint_index < this->getNumberOfJoints();
          ++joint_index)
     {
-      probe_positions[joint_index] = 0;
       // Hope that the lock thrashing here doesn't affect RT...
       // response.result.joint_names[joint_index] =
       // this->joint_names_[joint_index];
-      probe_positions[joint_index] =
+      event_positions[joint_index] =
           probe_joint_results_[joint_index].getPosition();
       // probe_state.velocities[joint_index] =
       // probe_joint_results_[joint_index].getVelocity();
       // probe_state.positions[joint_index] = 0;
       // probe_state.velocities[joint_index] = 0;
     }
-    response.event_position = probe_positions;
+    response.event_position = event_positions;
   }
   return true;
 }
