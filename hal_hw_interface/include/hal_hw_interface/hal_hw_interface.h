@@ -37,7 +37,7 @@
 #include <machinekit_interfaces/realtime_event_interface.h>
 #include <machinekit_interfaces/probe_interface.h>
 #include <machinekit_interfaces/joint_event_interface.h>
-#include <machinekit_interfaces/generic_interface.h>
+#include <machinekit_interfaces/hal_pin_interface.h>
 #include <hardware_interface/posvel_command_interface.h>
 
 // HAL
@@ -188,7 +188,7 @@ protected:
 
   machinekit_interfaces::ProbeInterface probe_interface_;
   machinekit_interfaces::JointEventDataInterface joint_event_data_interface_;
-  machinekit_interfaces::GenericInt32Interface generic_int32_interface_;
+  machinekit_interfaces::HALS32PinInterface hal_s32_pin_interface_;
 
 private:
   // Joints:  HAL storage

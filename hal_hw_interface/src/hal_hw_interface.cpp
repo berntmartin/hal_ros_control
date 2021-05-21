@@ -74,10 +74,9 @@ int HalHWInterface::init_hal(void (*funct)(void*, long))
   }  // end for each joint
   registerInterface(&joint_event_data_interface_);
 
-  generic_int32_interface_.registerHandle(
-      machinekit_interfaces::GenericInt32Handle("controller_status",
-                                                &error_code_));
-  registerInterface(&generic_int32_interface_);
+  hal_s32_pin_interface_.registerHandle(machinekit_interfaces::HALS32PinHandle(
+      "controller_status", &error_code_));
+  registerInterface(&hal_s32_pin_interface_);
 
   // Call base class init to set register interfaces and handles for joint state
   // / command / limits
