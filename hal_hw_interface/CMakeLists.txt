@@ -18,6 +18,12 @@ find_package(catkin REQUIRED COMPONENTS
   stop_event_msgs
 )
 
+# Find Machinekit HAL
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
+find_package(
+  HAL
+  )
+
 # Install packages with setup.py
 catkin_python_setup()
 
@@ -45,11 +51,10 @@ catkin_package(
   std_msgs
   std_srvs
   stop_event_msgs
-)
 
-# Find Machinekit HAL
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
-find_package(HAL)
+  CFG_EXTRAS
+  ${PROJECT_NAME}-extras.cmake
+)
 
 # Header files
 # - Specify additional header locations
@@ -120,6 +125,10 @@ install(
 # Install launch files
 install(DIRECTORY launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+
+# Install CMake files
+install(FILES cmake/FindHAL.cmake cmake/UseHALComp.cmake
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cmake)
 
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)

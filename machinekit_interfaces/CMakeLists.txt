@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(machinekit_interfaces)
 
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
 # Load catkin and all dependencies required for this package
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -10,18 +15,11 @@ find_package(catkin REQUIRED COMPONENTS
 # Declare a catkin package
 catkin_package(
   INCLUDE_DIRS
-    include
+    include/
+    ${catkin_INCLUDE_DIRS}
   CATKIN_DEPENDS
     roscpp
 )
-
-
-###########
-## Build ##
-###########
-
-# Specify header include paths
-include_directories(include ${catkin_INCLUDE_DIRS})
 
 
 #############

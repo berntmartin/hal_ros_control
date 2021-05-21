@@ -26,7 +26,11 @@ find_package(catkin
     stop_event_msgs
     trajectory_msgs
     urdf
+    hal_hw_interface
 )
+find_package(
+  HAL
+  )
 
 # Declare catkin package
 catkin_package(
@@ -52,11 +56,20 @@ catkin_package(
     ${PROJECT_NAME}
 )
 
-include_directories(include ${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS})
+include_directories(
+  include/
+  ${HAL_INCLUDE_PATH}
+  ${Boost_INCLUDE_DIR}
+  ${catkin_INCLUDE_DIRS}
+  )
 
-add_library(${PROJECT_NAME}
-                            src/interruptible_joint_trajectory_controller.cpp
+add_library(
+  ${PROJECT_NAME}
+  src/interruptible_joint_trajectory_controller.cpp
 )
+
+# Add CFLAGS
+target_compile_definitions(${PROJECT_NAME} PRIVATE RTAPI=1)
 
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
