@@ -78,6 +78,12 @@ int HalHWInterface::init_hal(void (*funct)(void*, long))
       "controller_status", &error_code_));
   registerInterface(&hal_s32_pin_interface_);
 
+  hal_bit_pin_interface_.registerHandle(
+      machinekit_interfaces::HALBitPinHandle("estop", &estop_event_));
+  hal_bit_pin_interface_.registerHandle(
+      machinekit_interfaces::HALBitPinHandle("stop", &stop_event_));
+  registerInterface(&hal_bit_pin_interface_);
+
   // Call base class init to set register interfaces and handles for joint state
   // / command / limits
   ros_control_boilerplate::GenericHWInterface::init();
@@ -201,6 +207,18 @@ int HalHWInterface::init_hal(void (*funct)(void*, long))
     return false;
   }
 
+  if (!create_bit_pin(&estop_pin_ptr_, HAL_IN, "estop"))
+  {
+    HAL_ROS_LOG_ERR(CNAME, "%s: Failed to initialize estop pin", CNAME);
+    return false;
+  }
+
+  if (!create_bit_pin(&stop_pin_ptr_, HAL_IO, "stop"))
+  {
+    HAL_ROS_LOG_ERR(CNAME, "%s: Failed to initialize stop pin", CNAME);
+    return false;
+  }
+
   HAL_ROS_LOG_INFO(CNAME, "%s:  Initialized HAL pins", CNAME);
 
   // Export the function
@@ -319,6 +337,14 @@ void HalHWInterface::read_with_time(ros::Duration& elapsed_time,
 
   // Read reset pin
   reset_controllers = **reset_ptr_;
+
+  // Emergency stop event:  pass estop HAL pin value to controller
+  estop_event_ = **estop_pin_ptr_;
+
+  // Stop event:  pass stop HAL pin value to controller
+  stop_event_ = **stop_pin_ptr_;
+
+  // Probing
   {
     // Probe signal internally is active high, converted at the pin level for
     // active-low probes
@@ -398,8 +424,11 @@ void HalHWInterface::write(ros::Duration& elapsed_time)
   **probe_transition_ptr_ = probe_transition_;
   **probe_out_ptr_ = probe_signal_;
 
-  // Export the error code pointer
+  // Set error-code HAL pin to value passed from controller
   **error_code_ptr_ = error_code_;
+
+  // Stop event handled:  pass controller stop event value to stop HAL pin
+  **stop_pin_ptr_ = stop_event_;
 }
 
 void HalHWInterface::enforceLimits(ros::Duration& period)
