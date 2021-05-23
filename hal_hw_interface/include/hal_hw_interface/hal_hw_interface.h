@@ -188,6 +188,7 @@ protected:
 
   machinekit_interfaces::ProbeInterface probe_interface_;
   machinekit_interfaces::JointEventDataInterface joint_event_data_interface_;
+  machinekit_interfaces::HALBitPinInterface hal_bit_pin_interface_;
   machinekit_interfaces::HALS32PinInterface hal_s32_pin_interface_;
 
 private:
@@ -232,6 +233,12 @@ private:
 
   int error_code_;        // Placeholder for controller to pass error-code value
   int** error_code_ptr_;  // HAL output pin for controller error state
+
+  bool estop_event_;        // To pass estop pin value to controller
+  bool** estop_pin_ptr_;    // HAL input pin for controller estop event
+
+  bool stop_event_;        // To pass stop pin value to controller
+  bool** stop_pin_ptr_;    // HAL input pin for controller stop event
 
 };  // HalHWInterface
 
