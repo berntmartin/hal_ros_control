@@ -123,6 +123,15 @@ public:
 
 protected:
   void update(const ros::Time& time, const ros::Duration& period);
+  void handle_estop_event(
+      ExtendedTrajectoryPtr, joint_trajectory_controller::TimeData,
+      typename JointTrajectoryControllerType::RealtimeGoalHandlePtr);
+  void handle_stop_event(
+      ExtendedTrajectoryPtr, joint_trajectory_controller::TimeData,
+      typename JointTrajectoryControllerType::RealtimeGoalHandlePtr);
+  void handle_probe_transitions(
+      ExtendedTrajectoryPtr, joint_trajectory_controller::TimeData,
+      typename JointTrajectoryControllerType::RealtimeGoalHandlePtr);
   virtual void onTrajectoryError(int error_code);
   /*\}*/
 
@@ -184,6 +193,8 @@ protected:
   int jog_err_threshold_;
   int jog_err_count_;  // Used to count "soft" errors that should only be
                        // reported if many happen at once
+  machinekit_interfaces::HALBitPinHandle stop_handle_;
+  machinekit_interfaces::HALBitPinHandle estop_handle_;
 };
 
 }  // namespace interruptible_joint_trajectory_controller
@@ -319,6 +330,15 @@ bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
           robot_hw, claimed_resources, error_code_, "controller_status"))
     return false;
 
+  std::vector<machinekit_interfaces::HALBitPinHandle> bit_rsrc_handles;
+  const std::vector<std::string> bit_rsrc_names = { "stop", "estop" };
+  if (!claim_hardware_resources<machinekit_interfaces::HALBitPinInterface,
+                                machinekit_interfaces::HALBitPinHandle>(
+          robot_hw, claimed_resources, bit_rsrc_handles, bit_rsrc_names))
+    return false;
+  stop_handle_ = bit_rsrc_handles[0];
+  estop_handle_ = bit_rsrc_handles[1];
+
   ROS_INFO_STREAM_NAMED(this->name_, "Claimed " << claimed_resources.size()
                                                 << " hardware interface types");
   for (auto const& s : claimed_resources)
@@ -371,6 +391,61 @@ void InterruptibleJointTrajectoryController<
   typename JointTrajectoryControllerType::RealtimeGoalHandlePtr
       current_active_goal(this->rt_active_goal_);
 
+  // React to estop and stop events
+  handle_estop_event(curr_traj_ptr, time_data, current_active_goal);
+  handle_stop_event(curr_traj_ptr, time_data, current_active_goal);
+
+  // React to probe transitions
+  handle_probe_transitions(curr_traj_ptr, time_data, current_active_goal);
+
+  JointTrajectoryControllerType::update_joint_trajectory(
+      curr_traj_ptr->trajectory, time_data, period);
+}
+
+template <class SegmentImpl, class HardwareInterface>
+void InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
+    handle_estop_event(
+        ExtendedTrajectoryPtr curr_traj_ptr,
+        joint_trajectory_controller::TimeData time_data,
+        typename JointTrajectoryControllerType::RealtimeGoalHandlePtr
+            current_active_goal)
+{
+  if (!estop_handle_.get())
+    return;  // No event
+
+  error_code_.set(GetJointTrajectoryErrorContextResponse::HARDWARE_ESTOP_EVENT);
+  this->abortActiveGoalWithError(
+      current_active_goal, time_data.uptime,
+      GetJointTrajectoryErrorContextResponse::HARDWARE_ESTOP_EVENT);
+}
+
+template <class SegmentImpl, class HardwareInterface>
+void InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
+    handle_stop_event(
+        ExtendedTrajectoryPtr curr_traj_ptr,
+        joint_trajectory_controller::TimeData time_data,
+        typename JointTrajectoryControllerType::RealtimeGoalHandlePtr
+            current_active_goal)
+{
+  if (!stop_handle_.get())
+    return;  // No event
+
+  error_code_.set(GetJointTrajectoryErrorContextResponse::HARDWARE_STOP_EVENT);
+  this->cancelActiveGoalWithError(
+      current_active_goal, time_data.uptime,
+      GetJointTrajectoryErrorContextResponse::HARDWARE_STOP_EVENT);
+  // This is a request to the controller; mark request completed
+  stop_handle_.set(0);
+}
+
+template <class SegmentImpl, class HardwareInterface>
+void InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
+    handle_probe_transitions(
+        ExtendedTrajectoryPtr curr_traj_ptr,
+        joint_trajectory_controller::TimeData time_data,
+        typename JointTrajectoryControllerType::RealtimeGoalHandlePtr
+            current_active_goal)
+{
   // First, ensure that a new trajectory's probe settings are applied
   ProbeSettings& settings = curr_traj_ptr->motion_settings;
   if (!curr_traj_ptr->started)
@@ -378,7 +453,7 @@ void InterruptibleJointTrajectoryController<
     // Disregard any previously captured probe transitions (up to and including
     // the current timestep) This means that probe transitions are not detected
     // on the very first timestep
-    error_code_.set(0);
+    error_code_.set(GetJointTrajectoryErrorContextResponse::SUCCESSFUL);
     probe_handle_.startNewProbeCapture(settings.probe_request_capture_type);
     probe_handle_.acquireProbeTransition();
     // Don't re-apply the settings now that the new trajectory is active
@@ -466,11 +541,6 @@ void InterruptibleJointTrajectoryController<
           GetJointTrajectoryErrorContextResponse::PROBE_INVALID_STATE);
       break;
   }
-
-  // Finished reacting to probe events, begin to actually handle a trajectory
-  // update
-  JointTrajectoryControllerType::update_joint_trajectory(
-      curr_traj_ptr->trajectory, time_data, period);
 }
 
 template <class SegmentImpl, class HardwareInterface>
@@ -508,28 +578,29 @@ void InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
     checkReachedTrajectoryGoalProbe(int capture_type, const ros::Time& uptime)
 {
   // Check if we have reached the end of a
+  if (this->successful_joint_traj_.count() != this->getNumberOfJoints())
+    return;  // We hav
   RealtimeGoalHandlePtr current_active_goal(this->rt_active_goal_);
-  if (current_active_goal &&
-      this->successful_joint_traj_.count() == this->getNumberOfJoints())
+  if (!current_active_goal)
+    return;  // en't
+
+  if (capture_type ==
+          stop_event_msgs::SetNextProbeMoveRequest::PROBE_REQUIRE_RISING_EDGE ||
+      capture_type ==
+          stop_event_msgs::SetNextProbeMoveRequest::PROBE_REQUIRE_FALLING_EDGE)
   {
-    if (capture_type == stop_event_msgs::SetNextProbeMoveRequest::
-                            PROBE_REQUIRE_RISING_EDGE ||
-        capture_type == stop_event_msgs::SetNextProbeMoveRequest::
-                            PROBE_REQUIRE_FALLING_EDGE)
-    {
-      this->abortActiveGoalWithError(
-          current_active_goal, uptime,
-          GetJointTrajectoryErrorContextResponse::PROBE_REACHED_MOTION_END);
-    }
-    else
-    {
-      this->completeActiveGoal(current_active_goal, uptime);
-    }
-    this->rt_active_goal_.reset();
-    // TODO pass uptime in here to plane a stop trajectory in case the goal has
-    // nonzero velocity?
-    this->successful_joint_traj_.reset();
+    this->abortActiveGoalWithError(
+        current_active_goal, uptime,
+        GetJointTrajectoryErrorContextResponse::PROBE_REACHED_MOTION_END);
   }
+  else
+  {
+    this->completeActiveGoal(current_active_goal, uptime);
+  }
+  this->rt_active_goal_.reset();
+  // TODO pass uptime in here to plane a stop trajectory in case the goal has
+  // nonzero velocity?
+  this->successful_joint_traj_.reset();
 }
 
 template <class SegmentImpl, class HardwareInterface>
