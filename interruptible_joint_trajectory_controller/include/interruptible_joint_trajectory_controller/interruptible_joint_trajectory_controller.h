@@ -126,6 +126,20 @@ protected:
   virtual void onTrajectoryError(int error_code);
   /*\}*/
 
+  // Template for claiming a hardware interface of some type, not RT safe
+  template <typename intf_type, typename handle_type>
+  inline bool claim_hardware_resources(
+      hardware_interface::RobotHW*,
+      controller_interface::ControllerBase::ClaimedResources&,
+      std::vector<handle_type>&, const std::vector<std::string>&);
+
+  // Same for one item
+  template <typename intf_type, typename handle_type>
+  inline bool claim_hardware_resources(
+      hardware_interface::RobotHW*,
+      controller_interface::ControllerBase::ClaimedResources&, handle_type&,
+      const std::string);
+
   // Command handling, not real-time safe
   virtual bool updateTrajectoryCommand(const JointTrajectoryConstPtr& msg,
                                        RealtimeGoalHandlePtr gh,
@@ -185,6 +199,84 @@ InterruptibleJointTrajectoryController<
 {
 }
 
+// This is following the same basic pattern as Controller<>'s initRequest, but
+// we can't just use the basic init function because it's tied to the Joint
+// interface. initRequest itself has to be overridden to handle these
+// auxiliary interfaces.
+template <class SegmentImpl, class HardwareInterface>
+template <typename intf_type, typename handle_type>
+inline bool
+InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
+    claim_hardware_resources(
+        hardware_interface::RobotHW* robot_hw,
+        controller_interface::ControllerBase::ClaimedResources&
+            claimed_resources,
+        std::vector<handle_type>& handles,
+        const std::vector<std::string>& names)
+{
+  std::size_t size = names.size();
+  auto intf_typename =
+      hardware_interface::internal::demangledTypeName<intf_type>();
+  ROS_INFO_NAMED(this->name_, "Claiming %zu hardware resource(s) of type %s",
+                 size, intf_typename.c_str());
+  intf_type* intf = robot_hw->get<intf_type>();
+  if (!intf)
+  {
+    ROS_ERROR("This controller requires a hardware interface of type '%s'."
+              " Make sure this is registered in the "
+              "hardware_interface::RobotHW class.",
+              intf_typename.c_str());
+    return false;
+  }
+  intf->clearClaims();
+
+  handles.resize(size);
+  for (std::size_t i = 0; i < size; i++)
+  {
+    auto name = names[i];
+    try
+    {
+      handles[i] = intf->getHandle(name);
+      ROS_INFO_STREAM_NAMED(this->name_, "Found hardware interface '"
+                                             << name << "' of type '"
+                                             << intf_typename << "'.");
+    }
+    catch (...)
+    {
+      ROS_ERROR_STREAM_NAMED(this->name_, "No hardware interface '"
+                                              << name << "' of type '"
+                                              << intf_typename
+                                              << "' found in RobotHW class.");
+      return false;
+    }
+  }
+
+  hardware_interface::InterfaceResources iface_res(intf_typename,
+                                                   intf->getClaims());
+  claimed_resources.push_back(iface_res);
+  intf->clearClaims();
+  return true;
+}
+
+template <class SegmentImpl, class HardwareInterface>
+template <typename intf_type, typename handle_type>
+inline bool
+InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
+    claim_hardware_resources(
+        hardware_interface::RobotHW* robot_hw,
+        controller_interface::ControllerBase::ClaimedResources&
+            claimed_resources,
+        handle_type& handle, const std::string name)
+{
+  std::vector<handle_type> handles = { handle };
+  const std::vector<std::string> names = { name };
+  if (!claim_hardware_resources<intf_type, handle_type>(
+          robot_hw, claimed_resources, handles, names))
+    return false;
+  handle = handles[0];
+  return true;
+}
+
 template <class SegmentImpl, class HardwareInterface>
 bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
     initRequest(hardware_interface::RobotHW* robot_hw, ros::NodeHandle& root_nh,
@@ -207,122 +299,28 @@ bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
     return false;
   }
 
-  // This is following the same basic pattern as Controller<>'s initRequest, but
-  // we can't just use the basic init function because it's tied to the Joint
-  // interface. initRequest itself has to be overridden to handle these
-  // auxiliary interfaces.
-  {
-    ROS_INFO_STREAM_NAMED(this->name_, "Claiming probe resources");
-    machinekit_interfaces::ProbeInterface* probe_intf =
-        robot_hw->get<machinekit_interfaces::ProbeInterface>();
-    auto hw_if_typename = hardware_interface::internal::demangledTypeName<
-        machinekit_interfaces::ProbeInterface>();
-    if (!probe_intf)
-    {
-      ROS_ERROR("This controller requires a hardware interface of type '%s'."
-                " Make sure this is registered in the "
-                "hardware_interface::RobotHW class.",
-                hw_if_typename.c_str());
-      return false;
-    }
-    // return which resources are claimed by this controller
-    probe_intf->clearClaims();
+  if (!claim_hardware_resources<machinekit_interfaces::ProbeInterface,
+                                machinekit_interfaces::ProbeHandle>(
+          robot_hw, claimed_resources, probe_handle_, "probe"))
+    return false;
 
-    try
-    {
-      probe_handle = probe_intf->getHandle("probe");
-    }
-    catch (...)
-    {
-      ROS_ERROR_STREAM_NAMED(this->name_, "Could not find probe in '"
-                                              << hw_if_typename << "'.");
-      return false;
-    }
-    hardware_interface::InterfaceResources iface_res(hw_if_typename,
-                                                     probe_intf->getClaims());
-    claimed_resources.push_back(iface_res);
-    probe_intf->clearClaims();
-  }
-  {
-    ROS_INFO_STREAM_NAMED(this->name_, "Claiming joint event data resources");
-    machinekit_interfaces::JointEventDataInterface* probe_data_intf =
-        robot_hw->get<machinekit_interfaces::JointEventDataInterface>();
-    auto hw_if_typename = hardware_interface::internal::demangledTypeName<
-        machinekit_interfaces::JointEventDataInterface>();
-    if (!probe_data_intf)
-    {
-      ROS_ERROR("This controller requires a hardware interface of type '%s'."
-                " Make sure this is registered in the "
-                "hardware_interface::RobotHW class.",
-                hw_if_typename.c_str());
-      return false;
-    }
-    // return which resources are claimed by this controller
-    probe_data_intf->clearClaims();
+  // Probe results are a parallel set of handles defined by the joint names (to
+  // avoid conflicts with the standard joint handles)
+  std::vector<std::string> n = this->joint_names_;
+  std::for_each(n.begin(), n.end(), [](auto& s) { s.append("_probe"); });
+  const std::vector<std::string> joint_probe_names = n;
+  if (!claim_hardware_resources<machinekit_interfaces::JointEventDataInterface,
+                                machinekit_interfaces::JointEventDataHandle>(
+          robot_hw, claimed_resources, probe_joint_results_, joint_probe_names))
+    return false;
 
-    // NOTE: this depends on successful initialization of the controller so we
-    // can reuse the found joint names to create probe results per joint
-    const unsigned int n_joints = this->joint_names_.size();
-    probe_joint_results_.resize(n_joints);
-    for (unsigned int i = 0; i < n_joints; ++i)
-    {
-      std::string const& jname = this->joint_names_[i] + "_probe";
-      // Uses a parallel set of handles defined by the joint names (to avoid
-      // conflicts with the standard joint handles)
-      try
-      {
-        probe_joint_results_[i] = probe_data_intf->getHandle(jname);
-      }
-      catch (...)
-      {
-        ROS_ERROR_STREAM_NAMED(this->name_,
-                               "Could not find joint '"
-                                   << jname << "' in '"
-                                   << this->getHardwareInterfaceType() << "'.");
-        return false;
-      }
-    }
-
-    hardware_interface::InterfaceResources iface_res(
-        hw_if_typename, probe_data_intf->getClaims());
-    claimed_resources.push_back(iface_res);
-    probe_data_intf->clearClaims();
-  }
-  {
-    ROS_INFO_STREAM_NAMED(this->name_, "Claiming HAL pin resources");
-    machinekit_interfaces::HALS32PinInterface* hal_s32_pin_intf =
-        robot_hw->get<machinekit_interfaces::HALS32PinInterface>();
-    auto hw_if_typename = hardware_interface::internal::demangledTypeName<
-        machinekit_interfaces::HALS32PinInterface>();
-    if (!hal_s32_pin_intf)
-    {
-      ROS_ERROR("This controller requires a hardware interface of type '%s'."
-                " Make sure this is registered in the "
-                "hardware_interface::RobotHW class.",
-                hw_if_typename.c_str());
-      return false;
-    }
-    hal_s32_pin_intf->clearClaims();
-
-    try
-    {
-      error_code_ = hal_s32_pin_intf->getHandle("controller_status");
-    }
-    catch (...)
-    {
-      ROS_ERROR_STREAM_NAMED(this->name_, "Could not find controller_status in "
-                                          "'" << hw_if_typename
-                                              << "'.");
-      return false;
-    }
-    hardware_interface::InterfaceResources iface_res(
-        hw_if_typename, hal_s32_pin_intf->getClaims());
-    claimed_resources.push_back(iface_res);
-    hal_s32_pin_intf->clearClaims();
-  }
+  if (!claim_hardware_resources<machinekit_interfaces::HALS32PinInterface,
+                                machinekit_interfaces::HALS32PinHandle>(
+          robot_hw, claimed_resources, error_code_, "controller_status"))
+    return false;
 
   ROS_INFO_STREAM_NAMED(this->name_, "Claimed " << claimed_resources.size()
-                                                << " interfaces");
+                                                << " hardware interface types");
   for (auto const& s : claimed_resources)
   {
     for (auto const& c : s.resources)
