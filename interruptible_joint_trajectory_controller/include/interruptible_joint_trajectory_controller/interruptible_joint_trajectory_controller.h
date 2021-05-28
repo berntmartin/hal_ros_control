@@ -164,12 +164,12 @@ protected:
                                              //!< occurred
 
   std::vector<machinekit_interfaces::JointEventDataHandle> probe_joint_results_;
-  machinekit_interfaces::ProbeHandle probe_handle;
-  machinekit_interfaces::RealtimeEventHandle stop_event;
+  machinekit_interfaces::ProbeHandle probe_handle_;
+  machinekit_interfaces::RealtimeEventHandle stop_event_;
   machinekit_interfaces::GenericInt32Handle error_code_;
-  int jog_err_threshold;
-  int jog_err_count;  // Used to count "soft" errors that should only be
-                      // reported if many happen at once
+  int jog_err_threshold_;
+  int jog_err_count_;  // Used to count "soft" errors that should only be
+                       // reported if many happen at once
 };
 
 }  // namespace interruptible_joint_trajectory_controller
@@ -348,9 +348,9 @@ bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
 
   // KLUDGE soft error threshold so jogging with probe active doesn't spam the
   // console
-  jog_err_threshold = 32;
-  this->controller_nh_.getParam("jog_error_threshold", jog_err_threshold);
-  jog_err_count = -1;
+  jog_err_threshold_ = 32;
+  this->controller_nh_.getParam("jog_error_threshold", jog_err_threshold_);
+  jog_err_count_ = -1;
   // success
   this->state_ = controller_interface::Controller<
       HardwareInterface>::ControllerState::INITIALIZED;
@@ -381,16 +381,16 @@ void InterruptibleJointTrajectoryController<
     // the current timestep) This means that probe transitions are not detected
     // on the very first timestep
     error_code_.set(0);
-    probe_handle.startNewProbeCapture(settings.probe_request_capture_type);
-    probe_handle.acquireProbeTransition();
+    probe_handle_.startNewProbeCapture(settings.probe_request_capture_type);
+    probe_handle_.acquireProbeTransition();
     // Don't re-apply the settings now that the new trajectory is active
     curr_traj_ptr->started = true;
     // Since we're starting a new trajectory, the previous "stop" event is over
     this->rt_stop_event_triggered_ = false;
   }
 
-  auto probe_transition = probe_handle.acquireProbeTransition();
-  auto const probe_capture_type = probe_handle.getProbeCapture();
+  auto probe_transition = probe_handle_.acquireProbeTransition();
+  auto const probe_capture_type = probe_handle_.getProbeCapture();
 
   switch (probe_transition)
   {
@@ -438,7 +438,7 @@ void InterruptibleJointTrajectoryController<
     case ProbeTransitions::NONE:
       // Probe should not be high for non-probe motions, or if we're looking for
       // a rising edge (and haven't found it yet)
-      if (probe_handle.getProbeState())
+      if (probe_handle_.getProbeState())
       {
         switch (probe_capture_type)
         {
@@ -493,7 +493,7 @@ template <class SegmentImpl, class HardwareInterface>
 void InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
     checkReachedTrajectoryGoal(const ros::Time& uptime)
 {
-  int capture_type = probe_handle.getProbeCapture();
+  int capture_type = probe_handle_.getProbeCapture();
   if (capture_type)
   {
     checkReachedTrajectoryGoalProbe(capture_type, uptime);
@@ -551,8 +551,8 @@ bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
         stop_event_msgs::GetStopEventResultRequest& request,
         stop_event_msgs::GetStopEventResultResponse& response)
 {
-  response.stop_event = (long)probe_handle.getProbeResultType();
-  response.event_time = probe_handle.getProbeCaptureTime();
+  response.stop_event = (long)probe_handle_.getProbeResultType();
+  response.event_time = probe_handle_.getProbeCaptureTime();
   ROS_INFO_STREAM("Handling request for probe results for capture type "
                   << response.stop_event << " at time " << response.event_time);
   if (response.stop_event)
@@ -596,7 +596,7 @@ bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
 {
   // Guard against starting a motion if the probe is currently active
   // KLUDGE this should really be done in realtime but this will have to do
-  if (probe_handle.getProbeState() > 0)
+  if (probe_handle_.getProbeState() > 0)
   {
     auto requested_capture =
         this->queued_motion_settings_.probe_request_capture_type;
@@ -616,8 +616,8 @@ bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
         {
           // Caller didn't provide a feedback mechanism, so complain directly to
           // the console
-          (++jog_err_count) %= jog_err_threshold;
-          if (!jog_err_count)
+          (++jog_err_count_) %= jog_err_threshold_;
+          if (!jog_err_count_)
           {
             // KLUDGE avoid console spam by only publishing once we reach the
             // threshold (since these errors usually come from continuous
@@ -645,7 +645,7 @@ bool InterruptibleJointTrajectoryController<SegmentImpl, HardwareInterface>::
   {
     // Sends a message immediately when the next jog error occurs, but then
     // silences any additional errors until the threshold is reached.
-    jog_err_count = -1;
+    jog_err_count_ = -1;
   }
   return res;
 }
